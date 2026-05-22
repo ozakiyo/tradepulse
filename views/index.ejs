@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>配信メトリクス</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>配信メトリクス</h1>
+        <p>
+          USD/JPY と BTC現物を監視し、シグナル時に LINE へ配信します（試験運用・実口座未接続）。
+        </p>
+        <p class="field-hint" id="pulse-mode-hint">読み込み中…</p>
+      </header>
+
+      <section class="panel pulse-output-panel">
+        <h2>直近シグナル出力</h2>
+        <pre id="pulse-output-latest" class="pulse-output-pre">読み込み中…</pre>
+        <ul id="pulse-output-feed" class="pulse-output-feed"></ul>
+      </section>
+
+      <section class="panel">
+        <div id="pulse-status-summary" class="pulse-summary">
+          <p class="field-hint">読み込み中…</p>
+        </div>
+        <div class="actions">
+          <button type="button" id="pulse-check-now">今すぐチェック</button>
+          <button type="button" class="secondary" id="pulse-test-line">LINEテスト送信</button>
+          <button type="button" class="secondary" id="pulse-refresh">状態を更新</button>
+          <button type="button" class="secondary" id="pulse-reset-trial">試験データをリセット</button>
+        </div>
+        <p id="pulse-error" class="error" hidden></p>
+        <p id="pulse-check-msg" class="field-hint" hidden></p>
+      </section>
+
+      <section class="panel">
+        <h2>戦略（試験運用）</h2>
+        <dl id="pulse-strategy" class="pulse-dl"></dl>
+      </section>
+
+      <section class="panel">
+        <h2>シグナル履歴</h2>
+        <div class="ranking-table-wrap">
+          <table class="ranking-table pulse-table">
+            <thead>
+              <tr>
+                <th>時刻</th>
+                <th>銘柄</th>
+                <th>方向</th>
+                <th>価格</th>
+                <th>今回損益</th>
+                <th>累計損益</th>
+                <th>残高</th>
+              </tr>
+            </thead>
+            <tbody id="pulse-history-tbody"></tbody>
+          </table>
+        </div>
+        <p class="field-hint" id="pulse-history-empty">まだシグナル履歴がありません。</p>
+      </section>
+
+      <section class="panel">
+        <h2>LINE送信ログ</h2>
+        <ul id="pulse-line-log" class="pulse-email-log"></ul>
+      </section>
+    </div>
+    <script src="/js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "watch": ["app.js", "tradePulse.js", "views", "public"],
+  "ignore": ["data/**", "node_modules/**"],
+  "ext": "js,json,ejs"
+}
