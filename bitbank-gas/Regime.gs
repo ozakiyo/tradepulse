@@ -77,6 +77,25 @@ function bbCountEmaCrosses_(closes, fastP, slowP, lookback) {
   return crosses;
 }
 
+function bbCalcTrendBias_(closes, fastP, slowP) {
+  if (closes.length < slowP + 2) return 'neutral';
+  var emaFast = bbCalcEma_(closes, fastP);
+  var emaSlow = bbCalcEma_(closes, slowP);
+  var n = closes.length - 1;
+  var price = closes[n];
+  var fast = emaFast[n];
+  var slow = emaSlow[n];
+  if (price > slow && fast > slow) return 'bullish';
+  if (price < slow && fast < slow) return 'bearish';
+  return 'neutral';
+}
+
+function bbTrendBiasLabelJa_(bias) {
+  if (bias === 'bullish') return 'アップトレンド';
+  if (bias === 'bearish') return 'ダウントレンド';
+  return '方向不明';
+}
+
 /**
  * 急変 / トレンド / レンジ / 中立
  */
@@ -121,6 +140,7 @@ function bbDetectRegime_(candles, ticker, cfg) {
   if (trendScore >= 2 && trendScore > rangeScore) regime = 'trend';
   else if (rangeScore >= 2 && rangeScore > trendScore) regime = 'range';
 
+  var trendBias = regime === 'trend' ? bbCalcTrendBias_(closes, 20, 50) : null;
   var action = 'wait';
   var detail = '';
   if (regime === 'range') {
@@ -131,7 +151,13 @@ function bbDetectRegime_(candles, ticker, cfg) {
     detail = '中立→トラリピ（縮小） ER=' + er + ' ADX=' + adx;
   } else if (regime === 'trend') {
     action = 'swing';
-    detail = 'トレンド→スイング ER=' + er + ' ADX=' + adx;
+    detail =
+      'トレンド→スイング（' +
+      bbTrendBiasLabelJa_(trendBias) +
+      '） ER=' +
+      er +
+      ' ADX=' +
+      adx;
   }
 
   return {
@@ -142,6 +168,7 @@ function bbDetectRegime_(candles, ticker, cfg) {
     adx: adx,
     crosses: crosses,
     movePct: movePct,
+    trendBias: trendBias,
   };
 }
 

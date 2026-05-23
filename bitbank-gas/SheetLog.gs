@@ -27,7 +27,7 @@ function bbAppendRunLog_(regime, ticker, assets, state) {
   var sheet = bbGetLogSheet_();
   sheet.appendRow([
     Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
-    bbRegimeLabelJa_(regime.regime),
+    bbRegimeLabelJa_(regime.regime, regime.trendBias),
     bbActionLabelJa_(regime.action),
     ticker.last,
     state.mode || '',

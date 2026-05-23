@@ -55,8 +55,12 @@
     return '—';
   }
 
-  function regimeJa(r) {
-    if (r === 'trend') return 'トレンド';
+  function regimeJa(r, bias4h) {
+    if (r === 'trend') {
+      if (bias4h === 'bullish') return 'トレンド（アップ）';
+      if (bias4h === 'bearish') return 'トレンド（ダウン）';
+      return 'トレンド';
+    }
     if (r === 'range') return 'レンジ';
     if (r === 'mixed') return '中立';
     return '—';
@@ -145,7 +149,7 @@
           <span class="pulse-card-label">${escapeHtml(m.label)}</span>
           <strong>${m.lastPrice != null ? escapeHtml(String(m.lastPrice)) : '—'}</strong>
           <small>残高 ${Number(m.balance || 0).toLocaleString('ja-JP')} ${unit} / ${formatMoney(m.realizedPnl)} ${unit}</small>
-          <small>環境 ${regimeJa(m.lastRegime)}${m.lastAdx != null ? ` ADX${m.lastAdx}` : ''} / ポジ ${positionJa(m.position)} / 4H ${bias}</small>
+          <small>環境 ${regimeJa(m.lastRegime, m.lastBias4h)}${m.lastAdx != null ? ` ADX${m.lastAdx}` : ''} / ポジ ${positionJa(m.position)} / 4H ${bias}</small>
           <small>最終 ${signalJa(m.lastSignalType)}${m.entryRegime ? `（建玉:${regimeJa(m.entryRegime)}）` : ''}</small>
         </div>`;
       })

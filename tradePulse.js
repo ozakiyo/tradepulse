@@ -401,17 +401,25 @@ function detectMarketRegime(closed1h, cfg) {
   };
 }
 
-function regimeLabelJa(regime) {
-  if (regime === 'trend') return 'トレンド';
+function regimeLabelJa(regime, bias4h) {
+  if (regime === 'trend') {
+    if (bias4h === 'bullish') return 'トレンド（アップトレンド）';
+    if (bias4h === 'bearish') return 'トレンド（ダウントレンド）';
+    return 'トレンド';
+  }
   if (regime === 'range') return 'レンジ';
   if (regime === 'shock') return '急変';
   return '中立';
 }
 
 /** 環境ラベルに対応する運用方針（BTCトラリピ/スイング/停止） */
-function regimePlaybookJa(regime) {
+function regimePlaybookJa(regime, bias4h) {
   if (regime === 'shock') return 'STOP（トラリピ・新規停止）';
-  if (regime === 'trend') return 'スイング（順張り）';
+  if (regime === 'trend') {
+    if (bias4h === 'bullish') return 'スイング（アップトレンド・順張り）';
+    if (bias4h === 'bearish') return 'スイング（ダウントレンド・順張り）';
+    return 'スイング（順張り）';
+  }
   if (regime === 'range') return 'トラリピ（フル・幅5万円想定）';
   if (regime === 'mixed') return 'トラリピ（縮小）または様子見';
   return '様子見';
@@ -419,15 +427,19 @@ function regimePlaybookJa(regime) {
 
 function buildRegimeChangeText(market, analysis, prevRegime) {
   const prevLabel = prevRegime ? regimeLabelJa(prevRegime) : '（初回）';
+  const nextLabel = regimeLabelJa(analysis.regime, analysis.bias4h);
   const lines = [
     '【相場環境の変化】',
     `銘柄: ${market.label}`,
-    `変化: ${prevLabel} → ${regimeLabelJa(analysis.regime)}`,
-    `推奨運用: ${regimePlaybookJa(analysis.regime)}`,
+    `変化: ${prevLabel} → ${nextLabel}`,
+    `推奨運用: ${regimePlaybookJa(analysis.regime, analysis.bias4h)}`,
     `価格: ${analysis.price}`,
     `時刻: ${analysis.barTimeIso}`,
     `詳細: ${analysis.regimeDetail || '—'}`,
   ];
+  if (analysis.regime === 'trend' && analysis.bias4h && analysis.bias4h !== 'neutral') {
+    lines.push(`トレンド方向: ${biasLabelJa(analysis.bias4h)}`);
+  }
   if (analysis.adx != null) lines.push(`ADX: ${analysis.adx}`);
   if (analysis.er != null) lines.push(`効率比(ER): ${analysis.er}`);
   lines.push('※売買履歴・損益はスプレッドシートで管理');
@@ -1300,7 +1312,7 @@ function startContentPulseScheduler() {
       for (const r of result.regimeChanges || []) {
         console.log(
           `📣 環境変化 LINE [${r.marketId}]`,
-          regimeLabelJa(r.analysis?.regime),
+          regimeLabelJa(r.analysis?.regime, r.analysis?.bias4h),
           r.line?.from != null ? `(${r.line.from}→${r.line.to})` : '',
           '@',
           r.analysis?.price

@@ -34,25 +34,33 @@ function bbSendLine_(text) {
   return { sent: true };
 }
 
-function bbBuildRegimeLineText_(regime, ticker, prevRegime) {
-  var prev = prevRegime ? bbRegimeLabelJa_(prevRegime) : '（初回）';
-  var lines = [
-    '【BITBANK 相場環境の変化】',
-    '変化: ' + prev + ' → ' + bbRegimeLabelJa_(regime.regime),
-    '推奨: ' + bbActionLabelJa_(regime.action),
-    'BTC価格: ' + ticker.last,
-    regime.detail || '',
-    '※売買・損益はスプレッドシートで管理',
-  ];
-  return lines.join('\n');
-}
-
-function bbRegimeLabelJa_(r) {
+function bbRegimeLabelJa_(r, trendBias) {
   if (r === 'shock') return '急変';
-  if (r === 'trend') return 'トレンド';
+  if (r === 'trend') {
+    if (trendBias === 'bullish') return 'トレンド（アップトレンド）';
+    if (trendBias === 'bearish') return 'トレンド（ダウントレンド）';
+    return 'トレンド';
+  }
   if (r === 'range') return 'レンジ';
   if (r === 'mixed') return '中立';
   return r || '—';
+}
+
+function bbBuildRegimeLineText_(regime, ticker, prevRegime) {
+  var prev = prevRegime ? bbRegimeLabelJa_(prevRegime) : '（初回）';
+  var next = bbRegimeLabelJa_(regime.regime, regime.trendBias);
+  var lines = [
+    '【BITBANK 相場環境の変化】',
+    '変化: ' + prev + ' → ' + next,
+    '推奨: ' + bbActionLabelJa_(regime.action),
+    'BTC価格: ' + ticker.last,
+    regime.detail || '',
+  ];
+  if (regime.regime === 'trend' && regime.trendBias && regime.trendBias !== 'neutral') {
+    lines.push('トレンド方向: ' + bbTrendBiasLabelJa_(regime.trendBias));
+  }
+  lines.push('※売買・損益はスプレッドシートで管理');
+  return lines.join('\n');
 }
 
 function bbMaybeNotifyRegimeLine_(regime, ticker, prevRegime) {
