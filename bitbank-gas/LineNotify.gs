@@ -46,11 +46,49 @@ function bbRegimeLabelJa_(r, trendBias) {
   return r || '—';
 }
 
-function bbBuildRegimeLineText_(regime, ticker, prevRegime) {
-  var prev = prevRegime ? bbRegimeLabelJa_(prevRegime) : '（初回）';
+function bbShouldNotifyRegimeLine_(regime, prevRegime, prevTrendBias) {
+  if (prevRegime == null) return true;
+  if (prevRegime !== regime.regime) return true;
+  if (
+    regime.regime === 'trend' &&
+    regime.trendBias &&
+    regime.trendBias !== 'neutral' &&
+    prevTrendBias !== regime.trendBias
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function bbIsTrendDirectionFlip_(regime, prevRegime, prevTrendBias) {
+  return (
+    prevRegime === 'trend' &&
+    regime.regime === 'trend' &&
+    prevTrendBias &&
+    regime.trendBias &&
+    regime.trendBias !== 'neutral' &&
+    prevTrendBias !== regime.trendBias
+  );
+}
+
+function bbSaveLineRegimeSnapshot_(state, regime) {
+  state.lastLineRegime = regime.regime;
+  state.lastLineTrendBias =
+    regime.regime === 'trend' && regime.trendBias && regime.trendBias !== 'neutral'
+      ? regime.trendBias
+      : null;
+}
+
+function bbBuildRegimeLineText_(regime, ticker, prevRegime, prevTrendBias) {
+  var prevBias = prevRegime === 'trend' ? prevTrendBias : null;
+  var prev = prevRegime ? bbRegimeLabelJa_(prevRegime, prevBias) : '（初回）';
   var next = bbRegimeLabelJa_(regime.regime, regime.trendBias);
+  var isTrendFlip = bbIsTrendDirectionFlip_(regime, prevRegime, prevTrendBias);
   var lines = [
     '【BITBANK 相場環境の変化】',
+    isTrendFlip
+      ? '種別: トレンド方向の転換（レンジではありません）'
+      : '種別: 相場環境の変化',
     '変化: ' + prev + ' → ' + next,
     '推奨: ' + bbActionLabelJa_(regime.action),
     'BTC価格: ' + ticker.last,
@@ -63,14 +101,14 @@ function bbBuildRegimeLineText_(regime, ticker, prevRegime) {
   return lines.join('\n');
 }
 
-function bbMaybeNotifyRegimeLine_(regime, ticker, prevRegime) {
+function bbMaybeNotifyRegimeLine_(regime, ticker, prevRegime, prevTrendBias) {
   if (!bbIsLineConfigured_()) {
     return { sent: false, reason: 'LINE未設定' };
   }
-  if (prevRegime === regime.regime) {
+  if (!bbShouldNotifyRegimeLine_(regime, prevRegime, prevTrendBias)) {
     return { sent: false, reason: '環境変化なし' };
   }
-  var text = bbBuildRegimeLineText_(regime, ticker, prevRegime);
+  var text = bbBuildRegimeLineText_(regime, ticker, prevRegime, prevTrendBias);
   if (String(PropertiesService.getScriptProperties().getProperty('DRY_RUN') || 'true') !== 'false') {
     bbLog_('[DRY_RUN LINE]\n' + text);
     return { sent: false, reason: 'DRY_RUN（ログのみ）' };

@@ -123,7 +123,7 @@
     }
     if (pulseModeHint) {
       pulseModeHint.textContent = data?.lineConfigured
-        ? '相場環境が変わったときのみ LINE 通知（USD/JPY・BTC）。売買・損益はスプレッドシート。'
+        ? '相場環境またはトレンド方向が変わったときのみ LINE 通知（USD/JPY・BTC）。売買・損益はスプレッドシート。'
         : 'LINE 未設定: .env に LINE_CHANNEL_ACCESS_TOKEN と LINE_USER_ID を設定してください。';
     }
   }

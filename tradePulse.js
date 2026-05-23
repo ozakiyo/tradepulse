@@ -117,6 +117,7 @@ function defaultMarketState(market) {
     lastTradeAt: null,
     lastRegime: null,
     lastLineRegime: null,
+    lastLineTrendBias: null,
     lastAdx: null,
     lastEr: null,
     entryRegime: null,
@@ -425,12 +426,45 @@ function regimePlaybookJa(regime, bias4h) {
   return '様子見';
 }
 
-function buildRegimeChangeText(market, analysis, prevRegime) {
-  const prevLabel = prevRegime ? regimeLabelJa(prevRegime) : '（初回）';
+function shouldNotifyRegimeChange_(analysis, prevLineRegime, prevLineTrendBias) {
+  if (prevLineRegime == null) return true;
+  if (prevLineRegime !== analysis.regime) return true;
+  if (
+    analysis.regime === 'trend' &&
+    analysis.bias4h &&
+    analysis.bias4h !== 'neutral' &&
+    prevLineTrendBias !== analysis.bias4h
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function saveLineRegimeSnapshot_(mkt, analysis) {
+  mkt.lastLineRegime = analysis.regime;
+  mkt.lastLineTrendBias =
+    analysis.regime === 'trend' && analysis.bias4h && analysis.bias4h !== 'neutral'
+      ? analysis.bias4h
+      : null;
+}
+
+function buildRegimeChangeText(market, analysis, prevRegime, prevLineTrendBias) {
+  const prevBias = prevRegime === 'trend' ? prevLineTrendBias : null;
+  const prevLabel = prevRegime ? regimeLabelJa(prevRegime, prevBias) : '（初回）';
   const nextLabel = regimeLabelJa(analysis.regime, analysis.bias4h);
+  const isTrendDirectionFlip =
+    prevRegime === 'trend' &&
+    analysis.regime === 'trend' &&
+    prevLineTrendBias &&
+    analysis.bias4h &&
+    analysis.bias4h !== 'neutral' &&
+    prevLineTrendBias !== analysis.bias4h;
   const lines = [
     '【相場環境の変化】',
     `銘柄: ${market.label}`,
+    isTrendDirectionFlip
+      ? '種別: トレンド方向の転換（レンジではありません）'
+      : '種別: 相場環境の変化',
     `変化: ${prevLabel} → ${nextLabel}`,
     `推奨運用: ${regimePlaybookJa(analysis.regime, analysis.bias4h)}`,
     `価格: ${analysis.price}`,
@@ -446,30 +480,46 @@ function buildRegimeChangeText(market, analysis, prevRegime) {
   return lines.join('\n');
 }
 
-async function maybeNotifyRegimeChange_(state, marketId, market, analysis, prevLineRegime, sendLine) {
+async function maybeNotifyRegimeChange_(
+  state,
+  marketId,
+  market,
+  analysis,
+  prevLineRegime,
+  prevLineTrendBias,
+  sendLine
+) {
   if (!sendLine || !isLineConfigured()) {
     return { sent: false, reason: 'LINE未設定' };
   }
-  if (prevLineRegime === analysis.regime) {
+  if (!shouldNotifyRegimeChange_(analysis, prevLineRegime, prevLineTrendBias)) {
     return { sent: false, reason: '環境変化なし' };
   }
-  const text = buildRegimeChangeText(market, analysis, prevLineRegime);
+  const text = buildRegimeChangeText(market, analysis, prevLineRegime, prevLineTrendBias);
   try {
     const sent = await sendLinePush(text);
     const mkt = state.markets[marketId] || {};
-    mkt.lastLineRegime = analysis.regime;
+    saveLineRegimeSnapshot_(mkt, analysis);
     state.markets[marketId] = mkt;
     appendLineLog(state, {
       at: new Date().toISOString(),
       marketId,
-      kind: 'regime_change',
+      kind: isTrendDirectionFlip_(analysis, prevLineRegime, prevLineTrendBias)
+        ? 'trend_direction_change'
+        : 'regime_change',
       signal: analysis.regime,
       text,
       action: 'regime_notified',
       line: { sent: true },
     });
     printSignalToConsole(market.label, text);
-    return { sent: true, from: prevLineRegime, to: analysis.regime };
+    return {
+      sent: true,
+      from: prevLineRegime,
+      to: analysis.regime,
+      fromTrendBias: prevLineTrendBias,
+      toTrendBias: analysis.bias4h,
+    };
   } catch (err) {
     appendLineLog(state, {
       at: new Date().toISOString(),
@@ -480,6 +530,17 @@ async function maybeNotifyRegimeChange_(state, marketId, market, analysis, prevL
     });
     return { sent: false, reason: err.message };
   }
+}
+
+function isTrendDirectionFlip_(analysis, prevLineRegime, prevLineTrendBias) {
+  return (
+    prevLineRegime === 'trend' &&
+    analysis.regime === 'trend' &&
+    prevLineTrendBias &&
+    analysis.bias4h &&
+    analysis.bias4h !== 'neutral' &&
+    prevLineTrendBias !== analysis.bias4h
+  );
 }
 
 function evaluateTrendEntry(analysis, cfg, emaFast, emaSlow, n, prev, price, closes) {
@@ -891,6 +952,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
   const analysis = analyzeMarket(candles1h, candles4h, market);
   const mktState = { ...state.markets[marketId] };
   const prevLineRegime = mktState.lastLineRegime ?? null;
+  const prevLineTrendBias = mktState.lastLineTrendBias ?? null;
 
   mktState.lastPrice = analysis.price;
   mktState.lastBias4h = analysis.bias4h;
@@ -977,6 +1039,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
       market,
       analysis,
       prevLineRegime,
+      prevLineTrendBias,
       sendRegimeLine
     );
 
@@ -1002,6 +1065,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
       market,
       analysis,
       prevLineRegime,
+      prevLineTrendBias,
       sendRegimeLine
     );
     return {
@@ -1022,6 +1086,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
       market,
       analysis,
       prevLineRegime,
+      prevLineTrendBias,
       sendRegimeLine
     );
     return {
@@ -1102,6 +1167,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
     market,
     analysis,
     prevLineRegime,
+    prevLineTrendBias,
     sendRegimeLine
   );
 
@@ -1164,7 +1230,7 @@ function describeStrategyRules() {
     cost: `1回の決済ごとに試験コスト（USD/JPY ${c.costJpyPerTrade}円・BTC ${c.costUsdPerTrade}USD）`,
     cooldown: `新規エントリー間隔 ${c.cooldownHours} 時間`,
     reverse: c.allowReverse ? '同一シグナル内のドテン可' : 'ドテン禁止（決済のみ→別足で新規）',
-    lineNotify: '相場環境が変わったときのみLINE（売買・損益はスプレッドシート）',
+    lineNotify: '相場環境またはトレンド方向が変わったときのみLINE（売買・損益はスプレッドシート）',
     note: '試験用メトリクス・実口座未接続',
   };
 }
@@ -1188,6 +1254,7 @@ function getPulseStatus() {
       lastRsi: m.lastRsi,
       lastRegime: m.lastRegime,
       lastLineRegime: m.lastLineRegime,
+      lastLineTrendBias: m.lastLineTrendBias,
       lastAdx: m.lastAdx,
       lastEr: m.lastEr,
       entryRegime: m.entryRegime,
@@ -1303,7 +1370,7 @@ function startContentPulseScheduler() {
   }
   const intervalMs = envInt('TRADE_PULSE_CHECK_INTERVAL_MS', 5 * 60 * 1000);
   console.log(
-    `📡 配信メトリクス: USD/JPY + BTC 監視開始（${Math.round(intervalMs / 60000)}分間隔・LINE=${isLineConfigured() ? '環境変化時' : '未設定'}）`
+    `📡 配信メトリクス: USD/JPY + BTC 監視開始（${Math.round(intervalMs / 60000)}分間隔・LINE=${isLineConfigured() ? '環境/方向変化時' : '未設定'}）`
   );
 
   const tick = async () => {

@@ -16,14 +16,16 @@ function onOpen() {
 }
 
 function bbInitSheets() {
-  bbGetLogSheet_();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss.getSheetByName('売買履歴')) {
-    var tradeSheet = ss.insertSheet('売買履歴');
-    tradeSheet.appendRow(['日時', '売買', '価格', '数量(BTC)', 'メモ']);
-    tradeSheet.getRange(1, 1, 1, 5).setFontWeight('bold');
-  }
-  SpreadsheetApp.getUi().alert('「運用ログ」「売買履歴」シートを用意しました。\n損益はスプレッドシートで集計してください。');
+  bbInitAllSheets_();
+  SpreadsheetApp.getUi().alert(
+    '以下のシートを用意しました:\n' +
+      '・運用ログ（自動）\n' +
+      '・売買履歴（自動＋手動補完）\n' +
+      '・日次集計（毎日1行）\n' +
+      '・2週間試験（チェックリスト）\n\n' +
+      '列定義: bitbank-gas/docs/日次集計シート.md\n' +
+      '試験手順: bitbank-gas/docs/2週間試験チェックリスト.md'
+  );
 }
 
 function bbOpenScriptProperties_() {
@@ -59,6 +61,7 @@ function bbRunOnce() {
   var cfg = bbGetConfig_();
   var state = bbLoadState_();
   var prevLineRegime = state.lastLineRegime || null;
+  var prevLineTrendBias = state.lastLineTrendBias || null;
   try {
     var ticker = bbGetTicker_();
     var candles1h = bbGetCandles1h_();
@@ -71,10 +74,16 @@ function bbRunOnce() {
 
     bbAppendRunLog_(regime, ticker, assets, state);
 
-    var lineResult = bbMaybeNotifyRegimeLine_(regime, ticker, prevLineRegime);
+    var lineResult = bbMaybeNotifyRegimeLine_(regime, ticker, prevLineRegime, prevLineTrendBias);
     if (lineResult.sent) {
-      state.lastLineRegime = regime.regime;
-      bbLog_('LINE送信: 環境変化 ' + prevLineRegime + ' → ' + regime.regime);
+      bbSaveLineRegimeSnapshot_(state, regime);
+      bbLog_(
+        'LINE送信: ' +
+          prevLineRegime +
+          ' → ' +
+          regime.regime +
+          (regime.trendBias ? ' (' + regime.trendBias + ')' : '')
+      );
     }
 
     bbLog_(

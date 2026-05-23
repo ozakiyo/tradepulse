@@ -70,6 +70,7 @@ function bbLoadState_() {
       mode: 'idle',
       regime: 'mixed',
       lastLineRegime: null,
+      lastLineTrendBias: null,
       trailHigh: null,
       lastRunAt: null,
       lastAction: null,
