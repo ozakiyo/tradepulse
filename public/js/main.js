@@ -51,6 +51,14 @@
   function signalJa(s) {
     if (s === 'buy') return '買い';
     if (s === 'sell') return '売り';
+    if (s === 'exit') return '手仕舞い';
+    return '—';
+  }
+
+  function regimeJa(r) {
+    if (r === 'trend') return 'トレンド';
+    if (r === 'range') return 'レンジ';
+    if (r === 'mixed') return '中立';
     return '—';
   }
 
@@ -111,7 +119,7 @@
     }
     if (pulseModeHint) {
       pulseModeHint.textContent = data?.lineConfigured
-        ? 'シグナル時に LINE へ配信（USD/JPY・BTC現物）。'
+        ? '相場環境が変わったときのみ LINE 通知（USD/JPY・BTC）。売買・損益はスプレッドシート。'
         : 'LINE 未設定: .env に LINE_CHANNEL_ACCESS_TOKEN と LINE_USER_ID を設定してください。';
     }
   }
@@ -137,7 +145,8 @@
           <span class="pulse-card-label">${escapeHtml(m.label)}</span>
           <strong>${m.lastPrice != null ? escapeHtml(String(m.lastPrice)) : '—'}</strong>
           <small>残高 ${Number(m.balance || 0).toLocaleString('ja-JP')} ${unit} / ${formatMoney(m.realizedPnl)} ${unit}</small>
-          <small>ポジ ${positionJa(m.position)} / 4H ${bias} / 最終 ${signalJa(m.lastSignalType)}</small>
+          <small>環境 ${regimeJa(m.lastRegime)}${m.lastAdx != null ? ` ADX${m.lastAdx}` : ''} / ポジ ${positionJa(m.position)} / 4H ${bias}</small>
+          <small>最終 ${signalJa(m.lastSignalType)}${m.entryRegime ? `（建玉:${regimeJa(m.entryRegime)}）` : ''}</small>
         </div>`;
       })
       .join('');
@@ -151,8 +160,12 @@
       const s = data.strategy;
       pulseStrategy.innerHTML = `
         <dt>スタイル</dt><dd>${escapeHtml(s.style)}</dd>
-        <dt>エントリー</dt><dd>${escapeHtml(s.entry)}</dd>
-        <dt>フィルタ</dt><dd>${escapeHtml(s.filter)}</dd>
+        <dt>環境判定</dt><dd>${escapeHtml(s.regime || '—')}</dd>
+        <dt>トレンド</dt><dd>${escapeHtml(s.entryTrend || s.entry || '—')} / 手仕舞い ${escapeHtml(s.exitTrend || s.exit || '—')}</dd>
+        <dt>レンジ</dt><dd>${escapeHtml(s.entryRange || '—')} / 手仕舞い ${escapeHtml(s.exitRange || '—')}</dd>
+        <dt>コスト</dt><dd>${escapeHtml(s.cost || '—')}</dd>
+        <dt>クールダウン</dt><dd>${escapeHtml(s.cooldown || '—')}</dd>
+        <dt>ドテン</dt><dd>${escapeHtml(s.reverse || '—')}</dd>
         <dt>備考</dt><dd>${escapeHtml(s.note)}</dd>
       `;
     }
