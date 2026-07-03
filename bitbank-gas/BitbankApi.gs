@@ -53,6 +53,32 @@ function bbPublicGet_(path) {
   return json.data;
 }
 
+/** 日次ローソク用。当日未生成など code 10000 / 404 は空扱い */
+function bbPublicGetCandlesDay_(path, ymd) {
+  var url = BB_CONFIG.PUBLIC_API + path;
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  var code = res.getResponseCode();
+  var text = res.getContentText();
+  if (code === 404) {
+    bbLog_('ローソク未取得(404) ' + ymd);
+    return null;
+  }
+  var json;
+  try {
+    json = JSON.parse(text);
+  } catch (e) {
+    throw new Error('bitbank public parse error: ' + text.slice(0, 200));
+  }
+  if (!json.success) {
+    if (json.data && json.data.code === 10000) {
+      bbLog_('ローソク未取得(code10000) ' + ymd + ' — 前日以前から取得');
+      return null;
+    }
+    throw new Error('bitbank public error: ' + text.slice(0, 200));
+  }
+  return json.data;
+}
+
 function bbGetTicker_() {
   var data = bbPublicGet_('/' + BB_CONFIG.PAIR + '/ticker');
   return {
@@ -68,9 +94,18 @@ function bbFetchCandles1hDay_(daysAgo) {
   var d = new Date();
   d.setDate(d.getDate() - daysAgo);
   var ymd = Utilities.formatDate(d, 'Asia/Tokyo', 'yyyyMMdd');
-  var data = bbPublicGet_('/' + BB_CONFIG.PAIR + '/candlestick/1hour/' + ymd);
+  var cache = CacheService.getScriptCache();
+  var ckey = 'bb_cd_' + BB_CONFIG.PAIR + '_1hour_' + ymd;
+  var cached = cache.get(ckey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {}
+  }
+  var data = bbPublicGetCandlesDay_('/' + BB_CONFIG.PAIR + '/candlestick/1hour/' + ymd, ymd);
+  if (!data) return [];
   var rows = (data.candlestick && data.candlestick[0] && data.candlestick[0].ohlcv) || [];
-  return rows.map(function (r) {
+  var candles = rows.map(function (r) {
     return {
       open: Number(r[0]),
       high: Number(r[1]),
@@ -80,15 +115,43 @@ function bbFetchCandles1hDay_(daysAgo) {
       time: Number(r[5]),
     };
   });
+  cache.put(ckey, JSON.stringify(candles), 900);
+  return candles;
 }
 
+/**
+ * 1時間足を結合。UrlFetch削減のためキャッシュ＋必要日数のみ取得。
+ */
 function bbGetCandles1h_() {
-  var today = bbFetchCandles1hDay_(0);
-  if (today.length < 40) {
-    var yest = bbFetchCandles1hDay_(1);
-    return yest.concat(today);
+  var minBars = BB_CONFIG.MIN_CANDLES_1H || 55;
+  var cache = CacheService.getScriptCache();
+  var bkey = 'bb_cb_' + BB_CONFIG.PAIR + '_1hour_' + minBars;
+  var bundled = cache.get(bkey);
+  if (bundled) {
+    try {
+      var parsed = JSON.parse(bundled);
+      if (parsed.length >= minBars) return parsed;
+    } catch (e) {}
   }
-  return today;
+  var maxDays = Math.min(BB_CONFIG.CANDLE_FETCH_MAX_DAYS || 5, Math.ceil(minBars / 24) + 1);
+  var all = [];
+  for (var daysAgo = 0; daysAgo < maxDays; daysAgo++) {
+    var day = bbFetchCandles1hDay_(daysAgo);
+    if (day.length) all = day.concat(all);
+    if (all.length >= minBars) break;
+  }
+  all.sort(function (a, b) {
+    return a.time - b.time;
+  });
+  var deduped = [];
+  var lastTime = null;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].time === lastTime) continue;
+    lastTime = all[i].time;
+    deduped.push(all[i]);
+  }
+  if (deduped.length >= minBars) cache.put(bkey, JSON.stringify(deduped), 600);
+  return deduped;
 }
 
 function bbGetAssets_() {

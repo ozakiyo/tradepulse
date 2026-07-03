@@ -1,6 +1,8 @@
 # tradePulseNode
 
-USD/JPY・BTC現物の監視。**相場環境が変わったときのみ LINE 通知**（試験運用）。売買・損益はスプレッドシート。**articleappNode とは別アプリ**です。
+USD/JPY の監視。**相場環境が変わったときのみ LINE 通知**（試験運用）。  
+**BTC** は [bitbank-gas](bitbank-gas/README.md) が監視・売買・LINE を担当（本アプリでは扱いません）。  
+**articleappNode とは別アプリ**です。
 
 ## ローカル
 

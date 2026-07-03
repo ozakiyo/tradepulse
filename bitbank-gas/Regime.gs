@@ -97,11 +97,16 @@ function bbTrendBiasLabelJa_(bias) {
 }
 
 /**
- * 急変 / トレンド / レンジ / 中立
+ * 急落(STOP) / 急騰→トレンド / レンジ / 中立
  */
 function bbDetectRegime_(candles, ticker, cfg) {
-  if (candles.length < 55) {
-    return { regime: 'mixed', action: 'wait', detail: 'ローソク不足' };
+  var minBars = BB_CONFIG.MIN_CANDLES_1H || 55;
+  if (candles.length < minBars) {
+    return {
+      regime: 'mixed',
+      action: 'wait',
+      detail: 'ローソク不足（' + candles.length + '/' + minBars + '本）',
+    };
   }
 
   var closed = candles.slice(0, -1);
@@ -109,13 +114,17 @@ function bbDetectRegime_(candles, ticker, cfg) {
 
   var last = ticker.last;
   var prevClose = closed[closed.length - 2].close;
-  var movePct = (Math.abs(last - prevClose) / prevClose) * 100;
-  if (movePct >= cfg.shockMovePct) {
+  var moveSigned = last - prevClose;
+  var movePct = (Math.abs(moveSigned) / prevClose) * 100;
+
+  /** 急落のみ STOP。急騰は下のトレンド/レンジ判定へ（必要ならトレンドへ寄せる） */
+  if (movePct >= cfg.shockMovePct && moveSigned < 0) {
     return {
       regime: 'shock',
       action: 'stop',
-      detail: '急変: 1H変動 ' + movePct.toFixed(2) + '%',
+      detail: '急落: 1H変動 -' + movePct.toFixed(2) + '%',
       movePct: movePct,
+      shockDir: 'down',
     };
   }
 
@@ -160,6 +169,24 @@ function bbDetectRegime_(candles, ticker, cfg) {
       adx;
   }
 
+  /** 急騰（1H +閾値%以上）: トレンド/スイング扱い（レンジ・中立のまま張り直さない） */
+  if (movePct >= cfg.shockMovePct && moveSigned > 0) {
+    if (regime !== 'trend') {
+      regime = 'trend';
+      trendBias = bbCalcTrendBias_(closes, 20, 50);
+      action = 'swing';
+      detail =
+        '急騰→トレンド/スイング（1H +' +
+        movePct.toFixed(2) +
+        '%） ER=' +
+        er +
+        ' ADX=' +
+        adx;
+    } else {
+      detail = '急騰（1H +' + movePct.toFixed(2) + '%） ' + detail;
+    }
+  }
+
   return {
     regime: regime,
     action: action,
@@ -169,6 +196,7 @@ function bbDetectRegime_(candles, ticker, cfg) {
     crosses: crosses,
     movePct: movePct,
     trendBias: trendBias,
+    shockDir: movePct >= cfg.shockMovePct && moveSigned > 0 ? 'up' : null,
   };
 }
 

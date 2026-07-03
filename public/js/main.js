@@ -82,7 +82,7 @@
   }
 
   function marketLabel(id) {
-    if (id === 'btc') return 'BTC現物';
+    if (id === 'btc') return 'BTC/JPY';
     if (id === 'usdjpy') return 'USD/JPY';
     return id || '—';
   }
@@ -123,7 +123,7 @@
     }
     if (pulseModeHint) {
       pulseModeHint.textContent = data?.lineConfigured
-        ? '相場環境またはトレンド方向が変わったときのみ LINE 通知（USD/JPY・BTC）。売買・損益はスプレッドシート。'
+        ? 'USD/JPY: 環境・トレンド方向が変わったときのみ LINE。BTC は GAS（bitbank）が担当。'
         : 'LINE 未設定: .env に LINE_CHANNEL_ACCESS_TOKEN と LINE_USER_ID を設定してください。';
     }
   }
@@ -170,6 +170,8 @@
         <dt>コスト</dt><dd>${escapeHtml(s.cost || '—')}</dd>
         <dt>クールダウン</dt><dd>${escapeHtml(s.cooldown || '—')}</dd>
         <dt>ドテン</dt><dd>${escapeHtml(s.reverse || '—')}</dd>
+        <dt>LINE</dt><dd>${escapeHtml(s.lineNotify || '—')}</dd>
+        <dt>BTC</dt><dd>${escapeHtml(s.btc || '—')}</dd>
         <dt>備考</dt><dd>${escapeHtml(s.note)}</dd>
       `;
     }

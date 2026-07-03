@@ -1,3 +1,10 @@
 node_modules/
 .env
+.env.server
 data/
+credentials/
+
+# clasp（スクリプト ID は個人環境ごと）
+gas-clasp/projects.json
+**/.clasp.json
+.clasprc.json

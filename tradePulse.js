@@ -1,6 +1,7 @@
 /**
  * コンテンツ配信メトリクス（試験運用）
- * USD/JPY・BTC現物を監視し、相場環境が変わったときのみ LINE へ通知。
+ * USD/JPY を監視し、相場環境が変わったときのみ LINE へ通知。
+ * BTC は bitbank-gas（GAS）が監視・売買・LINE を担当（本アプリでは扱わない）。
  * 実口座・ブローカー API には接続しない。
  */
 const fs = require('fs');
@@ -62,15 +63,27 @@ const MARKETS = {
   },
   btc: {
     id: 'btc',
-    label: 'BTC現物',
-    chartLabel: 'BTC-USD 現物（1時間足・4時間足バイアス）',
-    symbol: 'BTC-USD',
-    currency: 'usd',
+    label: 'BTC/JPY',
+    chartLabel: 'BTC/JPY（bitbank・1時間足・4時間足バイアス）',
+    dataSource: 'bitbank',
+    pair: 'btc_jpy',
+    currency: 'jpy',
     defaultBalance: 50000,
-    defaultVolume: 0.01,
-    priceDecimals: 2,
+    defaultVolume: 0.0001,
+    priceDecimals: 0,
   },
 };
+
+/** 既定 false。BTC の監視・LINE は bitbank-gas のみ */
+function isBtcPulseEnabled() {
+  return envBool('TRADE_PULSE_BTC_ENABLED', false);
+}
+
+function getActiveMarketIds() {
+  const ids = ['usdjpy'];
+  if (isBtcPulseEnabled()) ids.push('btc');
+  return ids;
+}
 
 function envBool(name, fallback = false) {
   const v = String(process.env[name] ?? '').trim().toLowerCase();
@@ -126,8 +139,8 @@ function defaultMarketState(market) {
 
 function defaultState() {
   const markets = {};
-  for (const m of Object.values(MARKETS)) {
-    markets[m.id] = defaultMarketState(m);
+  for (const id of getActiveMarketIds()) {
+    markets[id] = defaultMarketState(MARKETS[id]);
   }
   return {
     version: 2,
@@ -163,12 +176,20 @@ function migrateState(raw) {
   return {
     ...base,
     trialStartedAt: raw.trialStartedAt || base.trialStartedAt,
-    markets: { ...base.markets, usdjpy: usd, btc: base.markets.btc },
+    markets: { ...base.markets, usdjpy: usd },
     history: raw.history || [],
     outputLog: raw.outputLog || [],
     lineLog: raw.lineLog || [],
     lastCheckAt: raw.lastCheckAt || null,
   };
+}
+
+function pruneStateMarkets_(state) {
+  const active = new Set(getActiveMarketIds());
+  for (const id of Object.keys(state.markets || {})) {
+    if (!active.has(id)) delete state.markets[id];
+  }
+  return state;
 }
 
 function loadState() {
@@ -182,7 +203,8 @@ function loadState() {
     return s;
   }
   try {
-    return migrateState(JSON.parse(fs.readFileSync(STATE_PATH, 'utf8')));
+    const state = pruneStateMarkets_(migrateState(JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'))));
+    return state;
   } catch {
     const s = defaultState();
     saveState(s);
@@ -262,6 +284,93 @@ async function fetchYahooCandles(symbol, interval, range) {
     });
   }
   return candles;
+}
+
+const BITBANK_PUBLIC_API = 'https://public.bitbank.cc';
+
+function bitbankYmd_(daysAgo) {
+  const d = new Date(Date.now() - daysAgo * 86400000);
+  return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' }).replace(/-/g, '');
+}
+
+async function fetchBitbankJson_(path) {
+  const url = `${BITBANK_PUBLIC_API}${path}`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`bitbank ${path} 取得失敗 (${res.status})`);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(`bitbank ${path}: ${json.data?.code || 'error'}`);
+  }
+  return json.data;
+}
+
+async function fetchBitbankCandles1h_(pair = 'btc_jpy', maxDays = 10, minBars = 55) {
+  const all = [];
+  for (let daysAgo = maxDays - 1; daysAgo >= 0; daysAgo--) {
+    const ymd = bitbankYmd_(daysAgo);
+    const data = await fetchBitbankJson_(`/${pair}/candlestick/1hour/${ymd}`);
+    const rows = data?.candlestick?.[0]?.ohlcv || [];
+    for (const r of rows) {
+      all.push({
+        open: Number(r[0]),
+        high: Number(r[1]),
+        low: Number(r[2]),
+        close: Number(r[3]),
+        volume: Number(r[4]),
+        time: Number(r[5]),
+      });
+    }
+    if (all.length >= minBars + 5) break;
+  }
+  all.sort((a, b) => a.time - b.time);
+  const deduped = [];
+  let lastTime = null;
+  for (const c of all) {
+    if (c.time === lastTime) continue;
+    lastTime = c.time;
+    deduped.push(c);
+  }
+  if (deduped.length < minBars) {
+    throw new Error(`${pair}: 1時間足データ不足 (${deduped.length}本)`);
+  }
+  return deduped;
+}
+
+function aggregateCandles4h_(candles1h) {
+  const start = candles1h.length % 4;
+  const out = [];
+  for (let i = start; i + 3 < candles1h.length; i += 4) {
+    const chunk = candles1h.slice(i, i + 4);
+    out.push({
+      time: chunk[0].time,
+      open: chunk[0].open,
+      high: Math.max(...chunk.map((c) => c.high)),
+      low: Math.min(...chunk.map((c) => c.low)),
+      close: chunk[chunk.length - 1].close,
+    });
+  }
+  return out;
+}
+
+async function fetchMarketCandles_(market) {
+  if (market.dataSource === 'bitbank') {
+    const pair = market.pair || 'btc_jpy';
+    const candles1h = await fetchBitbankCandles1h_(pair);
+    return { candles1h, candles4h: aggregateCandles4h_(candles1h) };
+  }
+  const [candles1h, candles4h] = await Promise.all([
+    fetchYahooCandles(market.symbol, '1h', '30d'),
+    fetchYahooCandles(market.symbol, '4h', '60d'),
+  ]);
+  return { candles1h, candles4h };
+}
+
+function formatMarketPrice_(market, price) {
+  const n = roundPrice(price, market.priceDecimals ?? 3);
+  if (market.currency === 'jpy') {
+    return `${Math.round(n).toLocaleString('ja-JP')} 円`;
+  }
+  return String(n);
 }
 
 function calcEfficiencyRatio(closes, period) {
@@ -409,13 +518,13 @@ function regimeLabelJa(regime, bias4h) {
     return 'トレンド';
   }
   if (regime === 'range') return 'レンジ';
-  if (regime === 'shock') return '急変';
+  if (regime === 'shock') return '急落';
   return '中立';
 }
 
 /** 環境ラベルに対応する運用方針（BTCトラリピ/スイング/停止） */
 function regimePlaybookJa(regime, bias4h) {
-  if (regime === 'shock') return 'STOP（トラリピ・新規停止）';
+  if (regime === 'shock') return 'STOP（急落・新規停止）';
   if (regime === 'trend') {
     if (bias4h === 'bullish') return 'スイング（アップトレンド・順張り）';
     if (bias4h === 'bearish') return 'スイング（ダウントレンド・順張り）';
@@ -467,7 +576,7 @@ function buildRegimeChangeText(market, analysis, prevRegime, prevLineTrendBias) 
       : '種別: 相場環境の変化',
     `変化: ${prevLabel} → ${nextLabel}`,
     `推奨運用: ${regimePlaybookJa(analysis.regime, analysis.bias4h)}`,
-    `価格: ${analysis.price}`,
+    `価格: ${formatMarketPrice_(market, analysis.price)}`,
     `時刻: ${analysis.barTimeIso}`,
     `詳細: ${analysis.regimeDetail || '—'}`,
   ];
@@ -626,7 +735,9 @@ function unrealizedPct(position, entry, price) {
 }
 
 function tradeCostAmount(marketId, cfg) {
-  return marketId === 'usdjpy' ? cfg.costJpyPerTrade : cfg.costUsdPerTrade;
+  return marketId === 'usdjpy' || marketId === 'btc'
+    ? cfg.costJpyPerTrade
+    : cfg.costUsdPerTrade;
 }
 
 function analyzeMarket(candles1h, candles4h, market) {
@@ -650,13 +761,27 @@ function analyzeMarket(candles1h, candles4h, market) {
   const rsi = calcRsi(closes);
   let regimeInfo = detectMarketRegime(closed1h, cfg);
   const prevClose = closed1h.length >= 2 ? closed1h[closed1h.length - 2].close : price;
-  const movePct = prevClose ? (Math.abs(price - prevClose) / prevClose) * 100 : 0;
-  if (movePct >= cfg.shockMovePct) {
+  const moveSigned = prevClose ? price - prevClose : 0;
+  const movePct = prevClose ? (Math.abs(moveSigned) / prevClose) * 100 : 0;
+  if (movePct >= cfg.shockMovePct && moveSigned < 0) {
     regimeInfo = {
       ...regimeInfo,
       regime: 'shock',
-      detail: `急変（1H変動 ${movePct.toFixed(2)}%）`,
+      detail: `急落（1H変動 -${movePct.toFixed(2)}%）`,
     };
+  } else if (movePct >= cfg.shockMovePct && moveSigned > 0) {
+    if (regimeInfo.regime !== 'trend') {
+      regimeInfo = {
+        ...regimeInfo,
+        regime: 'trend',
+        detail: `急騰→トレンド扱い（1H +${movePct.toFixed(2)}%）`,
+      };
+    } else {
+      regimeInfo = {
+        ...regimeInfo,
+        detail: `急騰（1H +${movePct.toFixed(2)}%） ${regimeInfo.detail || ''}`.trim(),
+      };
+    }
   }
 
   const base = {
@@ -859,7 +984,7 @@ function positionLabelJa(position) {
 }
 
 function moneyUnit(marketId) {
-  return marketId === 'usdjpy' ? '円' : 'USD';
+  return marketId === 'usdjpy' || marketId === 'btc' ? '円' : 'USD';
 }
 
 function buildNotifyText(payload) {
@@ -944,10 +1069,7 @@ async function runMarketCheck(state, marketId, { force = false, sendRegimeLine =
   const market = MARKETS[marketId];
   if (!market) throw new Error(`不明な銘柄: ${marketId}`);
 
-  const [candles1h, candles4h] = await Promise.all([
-    fetchYahooCandles(market.symbol, '1h', '30d'),
-    fetchYahooCandles(market.symbol, '4h', '60d'),
-  ]);
+  const { candles1h, candles4h } = await fetchMarketCandles_(market);
 
   const analysis = analyzeMarket(candles1h, candles4h, market);
   const mktState = { ...state.markets[marketId] };
@@ -1196,7 +1318,7 @@ async function runPulseCheck({ force = false, sendRegimeLine } = {}) {
   const state = loadState();
   const results = [];
 
-  for (const marketId of Object.keys(MARKETS)) {
+  for (const marketId of getActiveMarketIds()) {
     const r = await runMarketCheck(state, marketId, { force, sendRegimeLine: doRegimeLine });
     results.push(r);
   }
@@ -1227,10 +1349,11 @@ function describeStrategyRules() {
     entryRange: `レンジ時: RSI≤${c.rangeRsiBuy}で逆張り買い / RSI≥${c.rangeRsiSell}で逆張り売り`,
     exitTrend: `トレンド: 損切${c.stopLossPct}% / 利確${c.takeProfitPct}% / 4H逆行`,
     exitRange: `レンジ: 損切${c.rangeStopLossPct}% / 利確${c.rangeTakeProfitPct}% / RSI中央回帰`,
-    cost: `1回の決済ごとに試験コスト（USD/JPY ${c.costJpyPerTrade}円・BTC ${c.costUsdPerTrade}USD）`,
+    cost: `1回の決済ごとに試験コスト（USD/JPY ${c.costJpyPerTrade}円）`,
     cooldown: `新規エントリー間隔 ${c.cooldownHours} 時間`,
     reverse: c.allowReverse ? '同一シグナル内のドテン可' : 'ドテン禁止（決済のみ→別足で新規）',
-    lineNotify: '相場環境またはトレンド方向が変わったときのみLINE（売買・損益はスプレッドシート）',
+    lineNotify: 'USD/JPY: 環境またはトレンド方向が変わったときのみLINE',
+    btc: 'BTC: bitbank-gas が監視・売買・LINE（本アプリでは未監視）',
     note: '試験用メトリクス・実口座未接続',
   };
 }
@@ -1238,7 +1361,7 @@ function describeStrategyRules() {
 function getPulseStatus() {
   const state = loadState();
   const outputLog = (state.outputLog || []).slice(0, 50);
-  const marketList = Object.keys(MARKETS).map((id) => {
+  const marketList = getActiveMarketIds().map((id) => {
     const m = state.markets[id] || defaultMarketState(MARKETS[id]);
     return {
       id,
@@ -1266,6 +1389,7 @@ function getPulseStatus() {
     enabled: !envBool('TRADE_PULSE_DISABLED', false),
     notifyChannel: 'line',
     lineConfigured: isLineConfigured(),
+    btcPulseEnabled: isBtcPulseEnabled(),
     markets: marketList,
     strategy: describeStrategyRules(),
     trialStartedAt: state.trialStartedAt,
@@ -1370,7 +1494,7 @@ function startContentPulseScheduler() {
   }
   const intervalMs = envInt('TRADE_PULSE_CHECK_INTERVAL_MS', 5 * 60 * 1000);
   console.log(
-    `📡 配信メトリクス: USD/JPY + BTC 監視開始（${Math.round(intervalMs / 60000)}分間隔・LINE=${isLineConfigured() ? '環境/方向変化時' : '未設定'}）`
+    `📡 配信メトリクス: USD/JPY 監視開始（BTCはGAS）・${Math.round(intervalMs / 60000)}分間隔・LINE=${isLineConfigured() ? '環境/方向変化時' : '未設定'}）`
   );
 
   const tick = async () => {
@@ -1407,5 +1531,7 @@ module.exports = {
   stopContentPulseScheduler,
   runPulseCheck,
   getPulseStatus,
+  getActiveMarketIds,
+  isBtcPulseEnabled,
   MARKETS,
 };

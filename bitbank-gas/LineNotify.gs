@@ -35,7 +35,7 @@ function bbSendLine_(text) {
 }
 
 function bbRegimeLabelJa_(r, trendBias) {
-  if (r === 'shock') return '急変';
+  if (r === 'shock') return '急落';
   if (r === 'trend') {
     if (trendBias === 'bullish') return 'トレンド（アップトレンド）';
     if (trendBias === 'bearish') return 'トレンド（ダウントレンド）';
@@ -91,7 +91,7 @@ function bbBuildRegimeLineText_(regime, ticker, prevRegime, prevTrendBias) {
       : '種別: 相場環境の変化',
     '変化: ' + prev + ' → ' + next,
     '推奨: ' + bbActionLabelJa_(regime.action),
-    'BTC価格: ' + ticker.last,
+    'BTC価格: ' + Math.round(Number(ticker.last)).toLocaleString('ja-JP') + ' 円',
     regime.detail || '',
   ];
   if (regime.regime === 'trend' && regime.trendBias && regime.trendBias !== 'neutral') {

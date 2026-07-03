@@ -172,12 +172,22 @@ function bbGetTrialChecklistSheet_() {
   return sheet;
 }
 
-/** 4シート一括初期化 */
+function bbGetReportSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('週次レポート');
+  if (!sheet) {
+    sheet = ss.insertSheet('週次レポート');
+  }
+  return sheet;
+}
+
+/** 全シート一括初期化 */
 function bbInitAllSheets_() {
   bbGetLogSheet_();
   bbGetTradeSheet_();
   bbGetDailySummarySheet_();
   bbGetTrialChecklistSheet_();
+  bbGetReportSheet_();
 }
 
 /** 毎回のチェック結果を1行記録（損益はユーザーが別シートで集計） */
@@ -213,4 +223,7 @@ function bbAppendTradeLog_(side, price, amount, note) {
     '',
     note || '',
   ]);
+  if (cfg.dryRun) {
+    bbReportPaperTradeToMeta_(side, price, amount);
+  }
 }

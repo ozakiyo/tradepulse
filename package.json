@@ -5,15 +5,49 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "gas:login": "node gas-clasp/gas-clasp.mjs login",
+    "gas:setup": "node gas-clasp/gas-clasp.mjs setup",
+    "gas:status": "node gas-clasp/gas-clasp.mjs status",
+    "gas:push": "node gas-clasp/gas-clasp.mjs push",
+    "gas:push:all": "node gas-clasp/gas-clasp.mjs push-all",
+    "gas:pull": "node gas-clasp/gas-clasp.mjs pull",
+    "gas:help": "node gas-clasp/gas-clasp.mjs help",
+    "saxo:test": "node saxo-openapi/test-connection.mjs",
+    "saxo:test:gsaxo": "node saxo-openapi/test-gsaxo-symbols.mjs",
+    "saxo:oauth:url": "node saxo-openapi/saxo-oauth-url.mjs",
+    "saxo:oauth:exchange": "node saxo-openapi/saxo-oauth-exchange.mjs",
+    "saxo:oauth:import": "node saxo-openapi/saxo-oauth-import.mjs",
+    "saxo:oauth:test": "node saxo-openapi/saxo-oauth-test.mjs",
+    "gsaxo:run": "node saxo-openapi/run-gsaxo.mjs",
+    "gsaxo:daemon": "node saxo-openapi/run-gsaxo.mjs --daemon",
+    "gsaxo:report": "node saxo-openapi/run-gsaxo-report.mjs",
+    "gsaxo:meta:test": "node saxo-openapi/run-gsaxo-report.mjs --test",
+    "gsaxo:pm2:start": "pm2 start deploy/conoha/ecosystem.config.cjs",
+    "gsaxo:pm2:restart": "pm2 restart gsaxo",
+    "gsaxo:pm2:logs": "pm2 logs gsaxo --lines 80",
+    "gsaxo:reset-state": "node saxo-openapi/reset-paper-state.mjs",
+    "gsaxo:restore-watch": "node saxo-openapi/restore-trend-watch.mjs",
+    "gsaxo:clear-watch": "node saxo-openapi/clear-trend-watch.mjs",
+    "gsaxo:line:test": "node saxo-openapi/run-gsaxo-line-test.mjs",
+    "dhamma:build": "node scripts/build-dhammapada.mjs",
+    "gsaxo:email:test": "node saxo-openapi/run-gsaxo-email-test.mjs",
+    "gsaxo:stop-review": "node saxo-openapi/run-gsaxo-stop-review.mjs",
+    "gsaxo:list-stops": "node saxo-openapi/list-stops.mjs",
+    "gsaxo:fetch-spreads": "node saxo-openapi/run-gsaxo-fetch-spreads.mjs",
+    "team-j:capital": "node bitbank-gas-team-j/capital-estimate.mjs --min-jpy=1000",
+    "team-j:capital:rank": "node bitbank-gas-team-j/capital-estimate.mjs --min-jpy=1000 --rank",
+    "team-j:capital:btc": "node bitbank-gas-team-j/capital-estimate.mjs --pair=btc_jpy --min-jpy=1000"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "express-basic-auth": "^1.2.1"
+    "express-basic-auth": "^1.2.1",
+    "nodemailer": "^6.10.1"
   },
   "devDependencies": {
+    "@google/clasp": "^2.5.0",
     "nodemon": "^3.1.7"
   }
 }

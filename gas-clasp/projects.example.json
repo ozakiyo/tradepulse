@@ -1,0 +1,23 @@
+{
+  "projects": [
+    { "dir": "bitbank-gas-meta", "label": "META", "scriptId": "" },
+    { "dir": "bitbank-gas", "label": "A", "scriptId": "" },
+    { "dir": "bitbank-gas-team-b", "label": "B", "scriptId": "" },
+    { "dir": "bitbank-gas-team-c", "label": "C", "scriptId": "" },
+    { "dir": "bitbank-gas-team-d", "label": "D", "scriptId": "" },
+    { "dir": "bitbank-gas-team-e", "label": "E", "scriptId": "" },
+    { "dir": "bitbank-gas-team-g", "label": "G", "scriptId": "" },
+    { "dir": "bitbank-gas-team-g-fx", "label": "G-FX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-g-cfx", "label": "G-CFX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-j", "label": "J", "scriptId": "" },
+    { "dir": "bitbank-gas-team-g-cbo", "label": "G-CBO", "scriptId": "" },
+    { "dir": "bitbank-gas-team-g-ffx", "label": "G-FFX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-c-fx", "label": "C-FX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-d-fx", "label": "D-FX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-e-fx", "label": "E-FX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-f", "label": "F-FX", "scriptId": "" },
+    { "dir": "bitbank-gas-team-f-short", "label": "F-Short", "scriptId": "" },
+    { "dir": "bitbank-gas-team-f-crypto", "label": "F-Crypto", "scriptId": "" },
+    { "dir": "bitbank-gas-team-f-idx", "label": "F-Index", "scriptId": "" }
+  ]
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#4a6741">
+  <title>今日のダンマ</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="top">
+      <p class="date" id="dateLabel"></p>
+      <h1 class="title">今日のダンマ</h1>
+      <label class="collection-picker">
+        <span class="sr-only">経典を選ぶ</span>
+        <select id="collectionSelect" aria-label="経典を選ぶ"></select>
+      </label>
+      <p class="subtitle" id="chapterLabel">第1章・双品</p>
+      <p class="map-note" id="mapNote" hidden></p>
+      <label class="chapter-picker">
+        <span class="sr-only">章を選ぶ</span>
+        <select id="chapterSelect" aria-label="章を選ぶ"></select>
+      </label>
+    </header>
+
+    <main id="view-today" class="view active" aria-label="今日">
+      <div class="card swipe-area" id="pairCard">
+        <div class="card-meta">
+          <span class="badge" id="categoryBadge"></span>
+          <span class="verse" id="verseLabel"></span>
+        </div>
+
+        <section class="block observe">
+          <div class="block-head">
+            <p class="block-label">観察</p>
+            <button type="button" class="copy-btn" data-copy="observe" aria-label="観察をコピー">コピー</button>
+          </div>
+          <p class="block-text" id="observeText"></p>
+        </section>
+
+        <div class="arrow-down" aria-hidden="true">↓</div>
+
+        <section class="block action">
+          <div class="block-head">
+            <p class="block-label">行動</p>
+            <button type="button" class="copy-btn" data-copy="action" aria-label="行動をコピー">コピー</button>
+          </div>
+          <p class="block-text" id="actionText"></p>
+        </section>
+
+        <div class="quote-wrap">
+          <details class="quote-details">
+            <summary>経典の言葉</summary>
+            <p class="quote" id="quoteText"></p>
+          </details>
+          <button type="button" class="copy-btn" data-copy="quote" aria-label="経典の言葉をコピー">コピー</button>
+        </div>
+        <p class="copy-status" id="copyStatus" hidden role="status"></p>
+
+        <section class="memo-section" id="memoSection" aria-label="このペアのメモ">
+          <div class="memo-head">
+            <label class="memo-label" for="pairMemo">メモ</label>
+            <span class="memo-status" id="memoStatus" hidden>保存済み</span>
+          </div>
+          <p class="memo-hint">理解できない言葉や調べたことを、このペアに残せます</p>
+          <textarea
+            id="pairMemo"
+            class="memo-input"
+            rows="3"
+            maxlength="2000"
+            placeholder="例：戯論＝我·我所の想から生じる議論。触→受→思の流れ…"
+          ></textarea>
+        </section>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="nav-btn" id="prevBtn" aria-label="前へ">‹</button>
+        <p class="nav-hint" id="navHint">左右にスワイプ</p>
+        <button type="button" class="nav-btn" id="nextBtn" aria-label="次へ">›</button>
+      </div>
+
+      <section class="review" id="reviewSection">
+        <p class="review-title">今日の振り返り</p>
+        <div class="review-row">
+          <span class="review-label">観察</span>
+          <div class="rate-group" data-field="observe" role="group" aria-label="観察の振り返り">
+            <button type="button" class="rate" data-value="ok">○</button>
+            <button type="button" class="rate" data-value="partial">△</button>
+            <button type="button" class="rate" data-value="ng">×</button>
+          </div>
+        </div>
+        <div class="review-row">
+          <span class="review-label">行動</span>
+          <div class="rate-group" data-field="action" role="group" aria-label="行動の振り返り">
+            <button type="button" class="rate" data-value="ok">○</button>
+            <button type="button" class="rate" data-value="partial">△</button>
+            <button type="button" class="rate" data-value="ng">×</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <main id="view-categories" class="view" aria-label="カテゴリ" hidden>
+      <p class="view-intro">場面を選ぶと、そのカテゴリのペアを表示します。</p>
+      <div class="category-grid" id="categoryGrid"></div>
+    </main>
+
+    <main id="view-chapters" class="view" aria-label="章" hidden>
+      <p class="view-intro" id="chapterViewIntro">章を選ぶとその章のペアを表示します。</p>
+      <div class="category-grid" id="chapterGrid"></div>
+    </main>
+
+    <main id="view-log" class="view" aria-label="記録" hidden>
+      <p class="view-intro">直近14日間の振り返り</p>
+      <ul class="log-list" id="logList"></ul>
+
+      <section class="backup-section" aria-label="バックアップ">
+        <p class="backup-title">バックアップ</p>
+        <p class="backup-hint">メモ・振り返り・章の選択を JSON ファイルで保存・復元できます（端末の localStorage と同期）</p>
+        <div class="backup-actions">
+          <button type="button" class="backup-btn" id="exportBackupBtn">ダウンロード</button>
+          <button type="button" class="backup-btn" id="importMergeBtn">マージ</button>
+          <button type="button" class="backup-btn backup-btn-warn" id="importReplaceBtn">置換</button>
+          <input type="file" id="importBackupInput" accept=".json,application/json" hidden>
+        </div>
+        <p class="backup-status" id="backupStatus" hidden role="status"></p>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="メニュー">
+      <button type="button" class="tab active" data-view="today">今日</button>
+      <button type="button" class="tab" data-view="categories">場面</button>
+      <button type="button" class="tab" data-view="chapters">章</button>
+      <button type="button" class="tab" data-view="log">記録</button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
