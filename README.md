@@ -2,10 +2,19 @@
 
 USD/JPY・BTC現物の監視。**相場環境が変わったときのみ LINE 通知**（試験運用）。売買・損益はスプレッドシート。**articleappNode とは別アプリ**です。
 
+ローカル配置: `~/work/apps/tradePulseNode`（旧 `~/tradePulseNode` はシンボリックリンク）
+
+| 実行先 | 対象 |
+|--------|------|
+| ConoHa + pm2 `gsaxo` | `saxo-openapi/` のみ（本番。ポジションあり） |
+| Google Apps Script | `bitbank-gas-team-j/` / `bitbank-gas-team-k/` など（`clasp`） |
+
+**本番注意:** ConoHa の `/opt/tradePulseNode`・`pm2 gsaxo`・`data/gsaxo-state.json` は、意図したデプロイ時以外は触らない。ローカルでの `gsaxo:daemon` も二重発注になるため起動しない。
+
 ## ローカル
 
 ```bash
-cd tradePulseNode
+cd ~/work/apps/tradePulseNode
 cp .env.example .env
 # LINE_CHANNEL_ACCESS_TOKEN, LINE_USER_ID を設定
 

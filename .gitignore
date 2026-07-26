@@ -1,3 +1,17 @@
 node_modules/
 .env
+.env.*
+!.env.example
+env.server.from-conoha
 data/
+logs/
+*.log
+.DS_Store
+
+# dhamma は別リポ。ローカルには置かない
+public/dhamma/
+
+# OAuth / トークン類（data/ 外に置いた場合の保険）
+**/saxo-oauth-tokens.json
+**/*tokens.json
+!**/tokens.example.json

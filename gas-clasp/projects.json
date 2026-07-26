@@ -1,0 +1,16 @@
+{
+  "projects": [
+    { "dir": "bitbank-gas-meta", "label": "META", "scriptId": "1q_uBEP3ehZLDte1mNogwhWQIrgOWYTqA7hfza4k36TUnOQjLO3qW7JAg" },
+    { "dir": "bitbank-gas", "label": "A", "scriptId": "1R8HHsinLbQcebqFLOdGnfMAN4TgR2T7byxTbR8oHHYbyYpuRDJBU9HQE" },
+    { "dir": "bitbank-gas-team-b", "label": "B", "scriptId": "1iA-XCJTXc-rV2euEmCofrtkmt5BqqynTj_Nq5KGcPEQ47XqsSZdBPaKH" },
+    { "dir": "bitbank-gas-team-e", "label": "E", "scriptId": "1giKSYOmbTcRcj8-M7t3zNKvWiSRubw78p8CWl64vj2_N1UXjaFu4A96v" },
+    { "dir": "bitbank-gas-team-e-fx", "label": "E-FX", "scriptId": "17OXXMLy_Fuw2yxV5b-HOhfwlWQhzdjWGqKbXEGNBDbYnFx3XqA_utBSz" },
+    { "dir": "bitbank-gas-team-f", "label": "F-FX", "scriptId": "1CcO6R4Y1hdorQiXk8eZk-M5vRPf1-msHqGwSowUNXrKscFP_1jzVKp5g" },
+    { "dir": "bitbank-gas-team-f-short", "label": "F-Short", "scriptId": "1Mb8QGf2iT4alX8NtT9nMGNHtt8iN-xJ0Tru-udtNkb8FrJ1bV5zrsiPn" },
+    { "dir": "bitbank-gas-team-g-cfx", "label": "G-CFX", "scriptId": "12o53zezmXTwQ5orJyRxzgPKY8s1c4K-d0u6Tr2ZmTrLDgWj9tRzOpujd" },
+    { "dir": "bitbank-gas-team-g-ffx", "label": "G-FFX", "scriptId": "1zaxFta4PqgXVBxWZnFtBiFWZNa-LkYe0Q9dVF_F3E7iAUoP0gavtGJAB" },
+    { "dir": "bitbank-gas-team-g-cbo", "label": "G-CBO", "scriptId": "1bQ1cvambjbcwHxUgQXar5rKKSG7Qp9oXZE9x-T9A-XiJouSK-nhewVRE" },
+    { "dir": "bitbank-gas-team-j", "label": "J-autotrap", "scriptId": "1D1kam9MkUQwYCofWzV35zAf7AD0X-1y-3dixlJUnpxIqq6SJVVjAYK-b" },
+    { "dir": "bitbank-gas-team-k", "label": "K", "scriptId": "1AEHh1U8ZmzOdYDsY29ZvL624Chq1s0ZGtXBVrE48E3ykHfpPBU_zGw1g" }
+  ]
+}
