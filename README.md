@@ -24,6 +24,17 @@ npm run dev
 
 http://localhost:3052（既定ポート **3052**。articleappNode は 3050）
 
+## ローカル Docker（確認専用・サーバー非送信）
+
+```bash
+cd ~/work/apps/tradePulseNode
+docker compose up -d --build
+# http://localhost:3052
+```
+
+起動するのは **Web UI（`app.js`）だけ**です。`gsaxo`（Saxo 本番Bot）は Docker では起動しません。  
+ConoHa の `pm2 gsaxo` がポジションを持っている間は、ローカルでも `gsaxo:daemon` を起動しないでください。
+
 ## ConoHa 同一サーバーでの運用例
 
 | アプリ | ディレクトリ | 既定 PORT |
