@@ -134,13 +134,14 @@ function jSlimSkipListsForStore_(skipLists) {
 }
 
 function jLoadRankSkipLists_() {
-  var raw = PropertiesService.getScriptProperties().getProperty(J_RANK_SKIP_KEY);
+  var raw = null;
+  try {
+    raw = CacheService.getScriptCache().get(J_RANK_SKIP_KEY);
+  } catch (eCache) {
+    raw = null;
+  }
   if (!raw) {
-    try {
-      raw = CacheService.getScriptCache().get(J_RANK_SKIP_KEY);
-    } catch (eCache) {
-      raw = null;
-    }
+    raw = PropertiesService.getScriptProperties().getProperty(J_RANK_SKIP_KEY);
   }
   if (!raw) return jEmptyRankSkipLists_();
   try {
@@ -158,21 +159,11 @@ function jSaveRankSkipLists_(skipLists) {
   } catch (eCache) {
     /* ignore */
   }
+  // Properties 枠を逼迫させるため、除外明細は Cache のみ（Properties には書かない）
   try {
-    if (json.length > 8500) {
-      // Properties は 9KB/キー上限。大きい場合は件数の多いレンジNGを間引く
-      slim.rangeNg = slim.rangeNg.slice(0, 80);
-      slim.dailyShort = slim.dailyShort.slice(0, 40);
-      json = JSON.stringify(slim);
-    }
-    if (json.length > 8500) {
-      PropertiesService.getScriptProperties().deleteProperty(J_RANK_SKIP_KEY);
-      jLog_('除外リストが大きいため Cache のみ保存 (' + json.length + '字)');
-      return;
-    }
-    PropertiesService.getScriptProperties().setProperty(J_RANK_SKIP_KEY, json);
+    PropertiesService.getScriptProperties().deleteProperty(J_RANK_SKIP_KEY);
   } catch (e) {
-    jLog_('除外リスト保存失敗: ' + (e.message || e));
+    /* ignore */
   }
 }
 

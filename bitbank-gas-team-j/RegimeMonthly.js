@@ -74,11 +74,11 @@ function jEvaluateMonthlyRegime_(pair, cfg) {
 
   var useWeeklyCache = J_CONFIG.LONG_TERM_CACHE_WEEKLY !== false;
   var weekKey = jMonthlyWeekKey_();
-  var props = PropertiesService.getScriptProperties();
   var ckey = jMonthlyCacheKey_(pair);
 
   if (useWeeklyCache) {
-    var raw = props.getProperty(ckey);
+    var cache = CacheService.getScriptCache();
+    var raw = cache.get(ckey);
     if (raw) {
       try {
         var cached = JSON.parse(raw);
@@ -107,12 +107,14 @@ function jEvaluateMonthlyRegime_(pair, cfg) {
 
   if (useWeeklyCache) {
     try {
-      props.setProperty(
+      // Script Properties は枠数上限50のため CacheService のみ使用
+      CacheService.getScriptCache().put(
         ckey,
-        JSON.stringify({ weekKey: weekKey, result: result, at: new Date().toISOString() })
+        JSON.stringify({ weekKey: weekKey, result: result, at: new Date().toISOString() }),
+        21600
       );
     } catch (e2) {
-      // ScriptProperties容量超過時は握りつぶし
+      /* ignore */
     }
   }
   return result;

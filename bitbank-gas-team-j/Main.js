@@ -15,8 +15,11 @@ function onOpen() {
     .addItem('7. ペア仕様をAPI同期', 'jSyncInstrumentsMenu')
     .addItem('8. シート初期化', 'jInitSheetsMenu')
     .addItem('9. 本番運用設定', 'jSetupProductionProperties')
+    .addItem('9b. ルーメウェイ本番スタート（税務リセット）', 'jRoomwayGoLiveMenu')
     .addItem('10. ログ表示', 'jShowLog')
     .addItem('10b. LINEテスト送信', 'jTestLineMenu')
+    .addItem('10c. プロパティ枠を掃除', 'jPrunePropertiesMenu')
+    .addItem('10d. bitbank APIキー更新', 'jSetBitbankApiKeysMenu')
     .addItem('11. 1回実行', 'jRunOnceMenu')
     .addItem('12. 5分トリガーを設置', 'jInstallTrigger')
     .addItem('13. トリガーを削除', 'jRemoveTrigger')
@@ -32,6 +35,94 @@ function onOpen() {
 function jShowLog() {
   var log = PropertiesService.getScriptProperties().getProperty('J_LOG') || '(空)';
   SpreadsheetApp.getUi().alert(log.slice(0, 1500));
+}
+
+/** Script Properties 50枠対策: キャッシュ・不要 state を削除 */
+function jPrunePropertiesMenu() {
+  var before = jCountScriptProperties_();
+  var ui = SpreadsheetApp.getUi();
+  var ans = ui.alert(
+    'プロパティ枠の掃除',
+    '現在 ' +
+      before +
+      ' / 50 件です。\n\n' +
+      '削除するもの:\n' +
+      '・月足キャッシュ (J_LT_*)\n' +
+      '・ランキングキャッシュ\n' +
+      '・ペア仕様JSON\n' +
+      '・ログ一時保存\n' +
+      '・アクティブ/休眠以外の銘柄state\n\n' +
+      '残すもの: APIキー・LINE・運用設定・J_GLOBAL・稼働中state\n\n実行しますか？',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (ans !== ui.Button.OK) return;
+  var r = jPruneScriptPropertiesCaches_();
+  ui.alert(
+    '掃除完了\n\n' +
+      r.before +
+      ' → ' +
+      r.after +
+      ' 件（-' +
+      r.removed +
+      '）\n\n' +
+      '続けて「10d. bitbank APIキー更新」でキーを変更できます。'
+  );
+}
+
+/** UIエディタが50枠で編集不能でも、既存キーの上書きは可能 */
+function jSetBitbankApiKeysMenu() {
+  var ui = SpreadsheetApp.getUi();
+  var props = PropertiesService.getScriptProperties();
+  var n = props.getKeys().length;
+  if (n >= 50 && !props.getProperty('BITBANK_API_KEY')) {
+    ui.alert(
+      'プロパティが ' +
+        n +
+        ' / 50 で満杯です。\n先に「10c. プロパティ枠を掃除」を実行してください。'
+    );
+    return;
+  }
+
+  var keyRes = ui.prompt(
+    'bitbank API KEY',
+    '新しい API KEY を貼り付けてください（空欄でキャンセル）',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (keyRes.getSelectedButton() !== ui.Button.OK) return;
+  var apiKey = String(keyRes.getResponseText() || '').trim();
+  if (!apiKey) {
+    ui.alert('キャンセルしました');
+    return;
+  }
+
+  var secRes = ui.prompt(
+    'bitbank API SECRET',
+    '新しい API SECRET を貼り付けてください',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (secRes.getSelectedButton() !== ui.Button.OK) return;
+  var apiSecret = String(secRes.getResponseText() || '').trim();
+  if (!apiSecret) {
+    ui.alert('SECRET が空のため中止しました');
+    return;
+  }
+
+  try {
+    props.setProperty('BITBANK_API_KEY', apiKey);
+    props.setProperty('BITBANK_API_SECRET', apiSecret);
+  } catch (e) {
+    ui.alert(
+      '保存に失敗しました: ' +
+        (e.message || e) +
+        '\n\n先に「10c. プロパティ枠を掃除」を実行してください。'
+    );
+    return;
+  }
+
+  jLog_('BITBANK_API_KEY / SECRET を更新（KEY先頭4文字=' + apiKey.slice(0, 4) + '…）');
+  ui.alert(
+    'APIキーを保存しました。\n\n次に「5. 接続テスト」で本番口座に繋がるか確認してください。'
+  );
 }
 
 function jShowFeeTable() {
@@ -227,10 +318,8 @@ function jSetupProductionProperties() {
   p.setProperty('FULL_BOX_TRAP', String(J_CONFIG.FULL_BOX_TRAP !== false));
   p.setProperty('DAILY_RANGE_MAX_PCT', String(J_CONFIG.DAILY_RANGE_MAX_PCT));
   p.setProperty('DAILY_RANGE_MAX_PCT_BTC', String(J_CONFIG.DAILY_RANGE_MAX_PCT_BTC));
+  p.setProperty('BTC_RESERVE_AMOUNT', String(J_CONFIG.BTC_RESERVE_AMOUNT));
   if (!p.getProperty('MIN_GRID_LEVELS')) p.setProperty('MIN_GRID_LEVELS', String(J_CONFIG.MIN_GRID_LEVELS));
-  if (!p.getProperty('BTC_RESERVE_AMOUNT')) {
-    p.setProperty('BTC_RESERVE_AMOUNT', String(J_CONFIG.BTC_RESERVE_AMOUNT));
-  }
   if (!p.getProperty('OWN_ORDERS_ONLY')) {
     p.setProperty('OWN_ORDERS_ONLY', String(J_CONFIG.OWN_ORDERS_ONLY_DEFAULT));
   }
@@ -243,20 +332,89 @@ function jSetupProductionProperties() {
     '本番運用設定を適用しました\n\n' +
       'DRY_RUN=false\n' +
       'VALIDATION_PAUSED=false\n' +
-      'MAX_ACTIVE_PAIRS=' +
+      'PAPER_JPY=' +
+      J_CONFIG.PAPER_JPY_DEFAULT +
+      '\nMAX_ACTIVE_PAIRS=' +
       J_CONFIG.MAX_ACTIVE_PAIRS +
       '\nPAIR_BUDGET_JPY=' +
       J_CONFIG.PAIR_BUDGET_JPY +
-      '\nMIN_LEVEL_JPY=' +
+      '（0=等分）\nMIN_LEVEL_JPY=' +
       J_CONFIG.MIN_LEVEL_JPY +
       '\nAUTO_LOT_SIZING=' +
       J_CONFIG.AUTO_LOT_SIZING +
       '\nBTC_RESERVE_AMOUNT=' +
       J_CONFIG.BTC_RESERVE_AMOUNT +
-      '\n\n不要シート（Bot推定の売買・損益・税務）を削除しました。\n' +
-      '税務は J_売買履歴 / J_税務明細 / J_税務集計・月次・日次（API実績）のみ使用します。\n\n' +
-      '次: 「5. 接続テスト」→「11. 1回実行」→「12. 5分トリガーを設置」\n' +
-      '（取引履歴は運用開始後に自動同期。過去分の取り込みは不要）'
+      '\n\n税務・損益を今からにする場合は\n「9b. ルーメウェイ本番スタート」を実行してください。\n\n' +
+      '次: 「5. 接続テスト」→「11. 1回実行」→「12. 5分トリガーを設置」'
+  );
+}
+
+/**
+ * ルーメウェイ法人本番: 資金60万 / BTC長期0 / 税務・損益を今から
+ */
+function jRoomwayGoLiveMenu() {
+  var ui = SpreadsheetApp.getUi();
+  var res = ui.alert(
+    'ルーメウェイ本番スタート',
+    '以下を適用します:\n\n' +
+      '・DRY_RUN=false / VALIDATION_PAUSED=false\n' +
+      '・BTC_RESERVE_AMOUNT=0\n' +
+      '・スタート資金基準 PAPER_JPY=600000\n' +
+      '・PAIR_BUDGET=180000 / MAX_ACTIVE=3\n' +
+      '・MIN_LEVEL_JPY=' +
+      J_CONFIG.MIN_LEVEL_JPY +
+      '（自動ロットの下限）\n' +
+      '・Bot状態リセット（グリッド・ポジション記録）\n' +
+      '・税務・損益・売買履歴・運用ログをクリア\n' +
+      '・取引履歴の取込開始点を「今」に設定（過去約定は取込まない）\n\n' +
+      '※ bitbank口座の実残高は変わりません\n' +
+      '※ J_除外銘柄はそのまま\n\n続行しますか？',
+    ui.ButtonSet.YES_NO
+  );
+  if (res !== ui.Button.YES) return;
+
+  var p = PropertiesService.getScriptProperties();
+  p.setProperty('DRY_RUN', 'false');
+  p.setProperty('VALIDATION_PAUSED', 'false');
+  p.setProperty('BTC_RESERVE_AMOUNT', '0');
+  p.setProperty('PAPER_JPY', '600000');
+  p.setProperty('ACCOUNT_BUDGET_PCT', String(J_CONFIG.ACCOUNT_BUDGET_PCT));
+  p.setProperty('MAX_ACTIVE_PAIRS', '3');
+  p.setProperty('PAIR_BUDGET_JPY', '180000');
+  p.setProperty('AUTO_LOT_SIZING', 'true');
+  p.setProperty('FULL_BOX_TRAP', 'true');
+  p.setProperty('MIN_LEVEL_JPY', String(J_CONFIG.MIN_LEVEL_JPY));
+  p.setProperty('DAILY_RANGE_MAX_PCT', String(J_CONFIG.DAILY_RANGE_MAX_PCT));
+  p.setProperty('DAILY_RANGE_MAX_PCT_BTC', String(J_CONFIG.DAILY_RANGE_MAX_PCT_BTC));
+  p.setProperty('J_EXCLUDE_PAIRS', '');
+
+  jEnsureSheetsInitializedDaily_(true);
+  jEnsureExcludeSheet_();
+  jResetAllState_();
+  var acct = jResetAccountingFromNow_();
+  if (typeof jPruneScriptPropertiesCaches_ === 'function') {
+    jPruneScriptPropertiesCaches_();
+  }
+
+  jLog_('ルーメウェイ本番スタート完了（60万・BTC長期0・枠18万×3・税務リセット）');
+  var errText =
+    acct && acct.errors && acct.errors.length
+      ? '\n\n⚠ 一部シートのクリアに失敗:\n' + acct.errors.join('\n') + '\n（該当シートは手動でデータ行を削除してください）'
+      : '\n\n税務・売買・損益・ログ・ランキングはクリア済みです。\n（J_除外銘柄は残しています）';
+  ui.alert(
+    '本番スタート準備が完了しました\n\n' +
+      'BTC長期保有=0\n' +
+      '資金基準=600,000円（本番はAPI残高を使用）\n' +
+      '1銘柄枠=180,000円 × 同時3銘柄（合計最大約54万円＝60万×90%）\n' +
+      'MIN_LEVEL_JPY=' +
+      J_CONFIG.MIN_LEVEL_JPY +
+      '（自動ロット下限）\n' +
+      '税務・損益=今から' +
+      errText +
+      '\n\n次の手順:\n' +
+      '1. 「5. 接続テスト」で残高≈60万を確認\n' +
+      '2. 「11. 1回実行」\n' +
+      '3. 問題なければ「12. 5分トリガーを設置」'
   );
 }
 

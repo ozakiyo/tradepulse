@@ -6,8 +6,8 @@ var J_CONFIG = {
   PUBLIC_API: 'https://public.bitbank.cc',
   PRIVATE_API: 'https://api.bitbank.cc/v1',
 
-  /** 1段あたり最低 JPY（本番想定デモ: 5000） */
-  MIN_LEVEL_JPY: 5000,
+  /** 1段あたり最低 JPY（枠18万向けの下限。自動ロットで枠内最大まで上げる） */
+  MIN_LEVEL_JPY: 30000,
 
   /** 日足レンジ（エントリー判定の上限幅%） */
   DAILY_LOOKBACK: 20,
@@ -46,25 +46,24 @@ var J_CONFIG = {
   /** 1回のランキング更新で使う最大実行時間（ms） */
   RANK_BATCH_MAX_MS: 270000,
 
-  /** 個人口座本番検証資金（11万円） */
-  PAPER_JPY_DEFAULT: 110000,
+  /** ルーメウェイ本番スタート資金 */
+  PAPER_JPY_DEFAULT: 600000,
   ACCOUNT_BUDGET_PCT: 0.9,
 
-  /** 11万円・同時2銘柄（自動ロットで1枠あたりを調整） */
-  MAX_ACTIVE_PAIRS: 2,
+  /** 同時アクティブ銘柄 */
+  MAX_ACTIVE_PAIRS: 3,
   /**
    * 1銘柄あたりの固定資金枠（円）。
-   * 設定時は選定・ロットをこの上限に縛り、1銘柄が全資金を独占しない。
-   * 0 以下で従来どおり（トラップ可資金 ÷ MAX_ACTIVE_PAIRS）
+   * 60万×90%÷3 ≒ 180000。0 以下で等分。
    */
-  PAIR_BUDGET_JPY: 55000,
+  PAIR_BUDGET_JPY: 180000,
   /** 総資金・塩漬け・MAX_ACTIVE_PAIRS からロットを自動調整 */
   AUTO_LOT_SIZING: true,
   /** エントリー箱全体にトラップ（現値下=指値・現値上=逆指値） */
   FULL_BOX_TRAP: true,
 
-  /** 長期保有BTC（トラップで新規購入は可 / この数量までは売却対象外） */
-  BTC_RESERVE_AMOUNT: 0.20263447,
+  /** 長期保有BTC（売却対象外）。ルーメウェイ本番は 0 */
+  BTC_RESERVE_AMOUNT: 0,
   /**
    * 自動選定・トラップから除外（長期ダウントレンド等）
    * 運用上の管理はシート「J_除外銘柄」。ここは初期シード兼フォールバック
@@ -359,6 +358,59 @@ function jResetAllState_() {
   if (typeof jClearRankCache_ === 'function') jClearRankCache_();
   jLog_('状態リセット: プロパティ ' + removed + '件削除');
   return removed;
+}
+
+/**
+ * Script Properties が 50 枠上限に達したときの掃除
+ * APIキー・運用設定・アクティブ/休眠 state は残す
+ * @return {{before:number, removed:number, after:number, removedKeys:string[]}}
+ */
+function jPruneScriptPropertiesCaches_() {
+  var props = PropertiesService.getScriptProperties();
+  var before = props.getKeys().length;
+  var global = jLoadGlobalState_();
+  var keepState = {};
+  (global.activePairs || []).forEach(function (p) {
+    keepState[jStateKey_(p)] = true;
+  });
+  (global.dormantPairs || []).forEach(function (p) {
+    keepState[jStateKey_(p)] = true;
+  });
+
+  var exact = {
+    J_RANK_CACHE: true,
+    J_RANK_OFFSET: true,
+    J_RANK_SKIP_LISTS: true,
+    J_INSTRUMENTS_JSON: true,
+    J_LOG: true,
+    J_LINE_ERR_FP: true,
+    J_LINE_ERR_AT: true,
+    J_EXCLUDE_PAIRS: true,
+    J_SHEETS_INIT_YMD: true,
+  };
+  var removedKeys = [];
+  props.getKeys().forEach(function (k) {
+    var del = false;
+    if (exact[k]) del = true;
+    else if (String(k).indexOf('J_LT_') === 0) del = true;
+    else if (String(k).indexOf('LEAGUE_ADJ_CACHE_') === 0) del = true;
+    else if (String(k).indexOf('J_S_') === 0 && !keepState[k]) del = true;
+    if (!del) return;
+    props.deleteProperty(k);
+    removedKeys.push(k);
+  });
+  try {
+    CacheService.getScriptCache().remove('J_RANK_SKIP_LISTS');
+  } catch (e) {
+    /* ignore */
+  }
+  var after = props.getKeys().length;
+  jLog_('Properties掃除: ' + before + ' → ' + after + '（-' + removedKeys.length + '）');
+  return { before: before, removed: removedKeys.length, after: after, removedKeys: removedKeys };
+}
+
+function jCountScriptProperties_() {
+  return PropertiesService.getScriptProperties().getKeys().length;
 }
 
 /** アクティブ銘柄が上限を超えていたら整理 */

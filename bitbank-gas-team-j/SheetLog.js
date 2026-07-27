@@ -331,6 +331,93 @@ function jClearSheetData_() {
   }
 }
 
+/** ヘッダ行以外を削除（シートが無い場合は何もしない） */
+function jClearSheetBodyKeepHeader_(sheetName, headerRows) {
+  headerRows = headerRows != null ? headerRows : 1;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) return { ok: false, reason: 'no-ss' };
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { ok: false, reason: 'missing' };
+  try {
+    if (sheet.getFilter()) sheet.getFilter().remove();
+  } catch (eFilter) {
+    /* ignore */
+  }
+  var lastRow = sheet.getLastRow();
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  if (lastRow <= headerRows) return { ok: true, cleared: 0, name: sheetName };
+
+  // clearContent の方が deleteRows より失敗しにくい（フィルタ・結合セル対策）
+  var numRows = lastRow - headerRows;
+  try {
+    sheet.getRange(headerRows + 1, 1, numRows, lastCol).clearContent();
+  } catch (eClear) {
+    try {
+      sheet.getRange(headerRows + 1, 1, lastRow, lastCol).clearContent();
+    } catch (eClear2) {
+      return { ok: false, reason: String(eClear2.message || eClear2), name: sheetName };
+    }
+  }
+  // 行を詰める（失敗しても中身は空）
+  try {
+    if (sheet.getLastRow() > headerRows) {
+      sheet.deleteRows(headerRows + 1, sheet.getLastRow() - headerRows);
+    }
+  } catch (eDel) {
+    /* ignore */
+  }
+  return { ok: true, cleared: numRows, name: sheetName };
+}
+
+/**
+ * 税務・損益・売買履歴をゼロから（今からの約定のみ）
+ * J_LAST_API_TRADE_MS を現在に設定し、過去約定は取り込まない
+ * @return {{ok:boolean, results:Object[], errors:string[]}}
+ */
+function jResetAccountingFromNow_() {
+  var targets = [
+    [J_SHEET_TRADE, 1],
+    [J_SHEET_TAX_DETAIL, 2], // 1ヘッダ + 2注記
+    [J_SHEET_TAX_SUMMARY, 1],
+    [J_SHEET_TAX_MONTHLY, 1],
+    [J_SHEET_TAX_DAILY, 1],
+    [J_SHEET_TAX_DAILY_ASSET, 1],
+    [J_SHEET_LOT_PROFIT, 1],
+    [J_SHEET_OWN_ORDERS, 1],
+    [J_SHEET_LOG, 1],
+  ];
+  var results = [];
+  var errors = [];
+  targets.forEach(function (t) {
+    var r = jClearSheetBodyKeepHeader_(t[0], t[1]);
+    results.push(r);
+    if (!r.ok && r.reason !== 'missing') {
+      errors.push((r.name || t[0]) + ': ' + (r.reason || 'fail'));
+    }
+  });
+
+  // ランキング診断も本番前に空へ（除外銘柄シートは残す）
+  try {
+    var rank = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(J_SHEET_RANK);
+    if (rank) rank.clear();
+  } catch (eRank) {
+    errors.push('J_ランキング: ' + (eRank.message || eRank));
+  }
+
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty(J_LAST_API_TRADE_MS_KEY, String(Date.now()));
+  SpreadsheetApp.flush();
+  jLog_(
+    '税務・損益リセット: クリア' +
+      results.filter(function (x) {
+        return x.ok && x.cleared > 0;
+      }).length +
+      'シート / エラー' +
+      errors.length
+  );
+  return { ok: errors.length === 0, results: results, errors: errors };
+}
+
 function jGetRankSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(J_SHEET_RANK);

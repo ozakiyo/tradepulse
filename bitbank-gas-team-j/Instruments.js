@@ -27,7 +27,12 @@ function jSyncInstrumentsFromApi_() {
     };
   });
   CacheService.getScriptCache().put(J_INSTRUMENTS_CACHE_KEY, JSON.stringify(map), J_INSTRUMENTS_CACHE_SEC);
-  PropertiesService.getScriptProperties().setProperty(J_INSTRUMENTS_CACHE_KEY, JSON.stringify(map));
+  // Script Properties 枠節約のため JSON 本体は Cache のみ
+  try {
+    PropertiesService.getScriptProperties().deleteProperty(J_INSTRUMENTS_CACHE_KEY);
+  } catch (e) {
+    /* ignore */
+  }
   return map;
 }
 
@@ -54,10 +59,13 @@ function jLoadInstruments_() {
       return JSON.parse(cache);
     } catch (e) {}
   }
+  // 旧版互換: Properties に残っていれば読む（以後は書かない）
   var raw = PropertiesService.getScriptProperties().getProperty(J_INSTRUMENTS_CACHE_KEY);
   if (raw) {
     try {
-      return JSON.parse(raw);
+      var map = JSON.parse(raw);
+      CacheService.getScriptCache().put(J_INSTRUMENTS_CACHE_KEY, raw, J_INSTRUMENTS_CACHE_SEC);
+      return map;
     } catch (e2) {}
   }
   return jSyncInstrumentsFromApi_();
