@@ -117,14 +117,9 @@ function mReplaceSheetBody_(sheetName, rows, cols) {
     else if (sheetName === M_SHEET_PNL_YEAR) sheet = mGetPnlYearSheet_();
     else throw new Error('sheet missing: ' + sheetName);
   }
-  if (sheet.getFilter()) sheet.getFilter().remove();
-  var last = sheet.getLastRow();
   var startRow = 2;
   // 税務明細以外は2行目から。手法説明も2行目から。
-  // deleteRows は「固定行以外を全削除」になるケースで失敗するため clearContent で置換する
-  if (last >= startRow) {
-    sheet.getRange(startRow, 1, last - startRow + 1, Math.max(sheet.getMaxColumns(), cols)).clearContent();
-  }
+  mClearSheetBodyKeepHeader_(sheet, startRow - 1, Math.max(sheet.getMaxColumns(), cols));
   var data = rows || [];
   if (!data.length) return 0;
   var normalized = data.map(function (r) {

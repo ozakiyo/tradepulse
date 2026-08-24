@@ -98,12 +98,26 @@ function mEnsureAggSheet_(name, headers, note) {
   return sheet;
 }
 
-function mClearAggBody_(sheet) {
-  if (sheet.getFilter()) sheet.getFilter().remove();
-  // deleteRows は「固定行以外を全削除」になるケースで失敗するため clearContent で置換する
-  if (sheet.getLastRow() > 1) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getMaxColumns()).clearContent();
+/** ヘッダ行を残して本文をクリア（deleteRows は固定行絡みで失敗するため使わない） */
+function mClearSheetBodyKeepHeader_(sheet, headerRows, numCols) {
+  headerRows = headerRows != null ? headerRows : 1;
+  if (!sheet) return 0;
+  try {
+    if (sheet.getFilter()) sheet.getFilter().remove();
+  } catch (eFilter) {
+    /* ignore */
   }
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= headerRows) return 0;
+  var lastCol = Math.max(numCols || 0, sheet.getLastColumn(), 1);
+  var numRows = lastRow - headerRows;
+  var startRow = headerRows + 1;
+  sheet.getRange(startRow, 1, numRows, lastCol).clearContent();
+  return numRows;
+}
+
+function mClearAggBody_(sheet) {
+  mClearSheetBodyKeepHeader_(sheet, 1);
 }
 
 function mWriteAggBody_(sheet, rows, cols) {
@@ -925,16 +939,7 @@ function mRebuildTaxDetailFromTradesMenu() {
 
   var result = mMovingAverageMatchTaxRows_(trades);
   var sheet = mGetTaxDetailSheet_();
-  if (sheet.getLastRow() >= M_TAX_DETAIL_DATA_ROW) {
-    sheet
-      .getRange(
-        M_TAX_DETAIL_DATA_ROW,
-        1,
-        sheet.getLastRow() - M_TAX_DETAIL_DATA_ROW + 1,
-        sheet.getMaxColumns()
-      )
-      .clearContent();
-  }
+  mClearSheetBodyKeepHeader_(sheet, M_TAX_DETAIL_DATA_ROW - 1, 17);
   if (result.taxRows.length) {
     sheet.getRange(M_TAX_DETAIL_DATA_ROW, 1, result.taxRows.length, 17).setValues(result.taxRows);
   }
