@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-15 09:30 JST / **Claude Code** |
+| 最終更新 | 2026-09-15 10:3x JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)** |
@@ -72,13 +72,6 @@ Claude Code はルートの [CLAUDE.md](CLAUDE.md) も読む。Cursor は `.curs
 
 Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続いている（原因未特定、下記未解決0番参照）。
 
-### エラー状況（2026-09-10 07:58 JST 確認、直近12h）
-致命的なものなし。全て自己解消済み:
-- K: `getOrder` 10009 が1件（単発）
-- L/P/Q: Gemini クォータ超過/タイムアウトが散発（フォールバックで継続、Q は15:12〜15:22頃に全プロバイダ一時利用不可のクラスタがあったが解消済み）
-- N: シート同期404が1件（単発）
-- R: 9/9 21:00〜21:01にMETA送信失敗2回（unauthorized→404）も21:02に成功、以降正常
-
 ### 運用メモ（両ツールが知っておくこと）
 - META `action=dump` は **doGet（クエリ）**。`doPost` では `unknown action`
 - dump のキーは `pnlSummary` / `pnlLog` / `overview` / `aiChanges`
@@ -92,17 +85,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## 未解決
 
-00. **【解決】K・Pのcrash_pause塩漬け問題**（2026-09-14夜に修正・デプロイ、2026-09-15朝に効果確認）。`worker.js`の再提案ロジック修正により、K・Rumeway(S)は9/15 00:33-34 JSTのMETA協議で承認され実際に`mode:normal`へ復帰済み。**Pのみ9/15も却下**（根拠が定性的なため安全側判断）だが、修正後の自動再提案により9/15 06:42 JSTに新提案が送信済み・次回15:00 JST協議待ち。この項目自体（塩漬けの再発防止）は解決、Pの個別判断は「未解決」というより通常運用の一部
-0a. **【新規】Team-P paramsの判断一貫性に疑義**（VPS側HANDOFF.mdの9/13 15:04ログで自己申告）: 9/12 15:01に却下したのと同方向(drop1hPausePct絶対値縮小)の変更を、9/13 15:04には見落として承認・**本番適用済み**。実害の有無は未確認。ユーザーによる内容確認を推奨
-0b. **【解決済み】HANDOFF.mdのローカル/VPS分岐 → GitHub経由の自動同期を実装**（2026-09-15）。原因は両者ともHANDOFF.mdがGit管理外（`.gitignore`ではなく単に未`add`）だったこと。対応:
-    - Mac側で統合版をGitへ`add`・`commit`・push（`ozakiyo/tradepulse`のprivateリポジトリ、コミット`27c2cc7`）
-    - VPS側は`/opt/tradePulseNode`の他パス（各チームディレクトリ等）が数ヶ月分git管理外のままrsyncデプロイされており、ブランチ全体を`git pull`/`git push`するとリスクがあるため、**HANDOFF.md 1ファイルだけをGitHub Contents API(`api.github.com/repos/.../contents/HANDOFF.md`)で直接読み書きする方式**に変更（`git`コマンド自体は使わない）
-    - `bitbank-gas-meta/scripts/meta-consult-cron/run.sh`を改修: cron実行前にGitHubから最新のHANDOFF.mdを取得・実行後に変更があればGitHubへpushするようにした
-    - 認証はGitHub Fine-grained PAT（`ozakiyo/tradepulse`限定、Contents:Read/Write）。VPS側`/opt/tradePulseNode/meta-consult/.github-token`に保存（chmod 600、Git管理外）。ユーザー発行・Claude Codeが設定
-    - GET/PUT双方とも動作確認済み（PUTは内容無変更のテストで実コミット作成まで確認、`7211d12`）
-    - 今後はcronが自動でMac⇔VPS間のHANDOFF.mdを同期する。人間側（Cursor/Claude Code）はセッション開始時に`git pull`、区切りに`git push`する運用を推奨（まだ手動）
-0c. **【新規・原因判明】`meta-dump.sh`/`meta-record.sh`が度々「Googleドライブのページが見つかりません」を返す件**（VPS側ログで9/12〜継続的に「要調査」として記録されていた): 2026-09-14夜にClaude Codeが別件で調査した際、原因は**curlのデフォルトUser-Agentに対するGoogle側のボット判定**と判明（ブラウザ相当のUser-Agentを付ければ200 OKで正常動作）。実害なし（後続dumpで正常反映確認済みのため）だが、`meta-dump.sh`/`meta-record.sh`のcurl呼び出しに`-A "Mozilla/5.0..."`を足せば、この紛らわしいログ自体を無くせる。低優先度・未修正
-0. **各チームDB(ops_profits/bot_positions)の月間累計とMETA月間累計が一致しない**（2026-09-14確認）。L/N/Oで数百〜数千円の差異（例: O は META −4510円台 vs DB集計 −1624円台）。原因未特定（集計期間の切り方の違いか別ソースの可能性、未確認）
+00. **【解決】K・Pのcrash_pause塩漬け問題**（詳細は9/14夜〜9/15朝のセッションログ参照）。再提案ロジック修正によりK・S(Rumeway)は復帰済み。P個別の再開判断は未解決というより通常運用の一部（次回15:00 JST協議待ち）
+0a. **Team-P paramsの判断一貫性に疑義**（9/13 15:04ログで自己申告、詳細はセッションログ参照）: 9/12却下と同方向の変更を9/13には見落として承認・本番適用済み。実害未確認。**ユーザーによる内容確認を推奨**
+0b. **【解決済み】HANDOFF.mdのローカル/VPS分岐 → GitHub API経由の自動同期を実装**（詳細は9/15セッションログ参照）。cronが`meta-consult-cron/run.sh`経由でGitHub上のHANDOFF.mdを自動読み書き
+0c. **【原因判明・低優先度】`meta-dump.sh`/`meta-record.sh`の「Googleドライブのページが見つかりません」表示**: curlのデフォルトUser-Agentがボット判定されるだけで実害なし。直せば紛らわしい表示は消せる（`-A "Mozilla/5.0..."`追加、未実施）
 0. **各チームDB(ops_profits/bot_positions)の月間累計とMETA月間累計が一致しない**（2026-09-14確認）。L/N/Oで数百〜数千円の差異（例: O は META −4510円台 vs DB集計 −1624円台）。原因未特定（集計期間の切り方の違いか別ソースの可能性、未確認）
 1. Team-P の LEVEL_JPY / 予算の具体的な見直し（未確定・未実行）
 2. Team-K `getOrder` 50009/10009 耐性（リトライ・50009取消扱い）— 設計のみ、**未デプロイ**
