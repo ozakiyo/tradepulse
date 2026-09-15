@@ -94,7 +94,13 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 00. **【解決】K・Pのcrash_pause塩漬け問題**（2026-09-14夜に修正・デプロイ、2026-09-15朝に効果確認）。`worker.js`の再提案ロジック修正により、K・Rumeway(S)は9/15 00:33-34 JSTのMETA協議で承認され実際に`mode:normal`へ復帰済み。**Pのみ9/15も却下**（根拠が定性的なため安全側判断）だが、修正後の自動再提案により9/15 06:42 JSTに新提案が送信済み・次回15:00 JST協議待ち。この項目自体（塩漬けの再発防止）は解決、Pの個別判断は「未解決」というより通常運用の一部
 0a. **【新規】Team-P paramsの判断一貫性に疑義**（VPS側HANDOFF.mdの9/13 15:04ログで自己申告）: 9/12 15:01に却下したのと同方向(drop1hPausePct絶対値縮小)の変更を、9/13 15:04には見落として承認・**本番適用済み**。実害の有無は未確認。ユーザーによる内容確認を推奨
-0b. **【新規・解決済み】HANDOFF.mdがローカル(Git管理下)とVPS(`/opt/tradePulseNode/HANDOFF.md`)で分岐していた**: META協議cronはVPS側のファイルにしかセッションログを追記しておらず、2026-09-12〜09-15分がローカルに未反映だった。2026-09-15朝に発見し、本ファイルへ統合済み（下記セッションログ参照）。**今後また分岐しうる**ため、次回セッション開始時は`ssh root@160.251.173.118 cat /opt/tradePulseNode/HANDOFF.md`で差分を確認する運用を推奨（自動同期の仕組みは未整備）
+0b. **【解決済み】HANDOFF.mdのローカル/VPS分岐 → GitHub経由の自動同期を実装**（2026-09-15）。原因は両者ともHANDOFF.mdがGit管理外（`.gitignore`ではなく単に未`add`）だったこと。対応:
+    - Mac側で統合版をGitへ`add`・`commit`・push（`ozakiyo/tradepulse`のprivateリポジトリ、コミット`27c2cc7`）
+    - VPS側は`/opt/tradePulseNode`の他パス（各チームディレクトリ等）が数ヶ月分git管理外のままrsyncデプロイされており、ブランチ全体を`git pull`/`git push`するとリスクがあるため、**HANDOFF.md 1ファイルだけをGitHub Contents API(`api.github.com/repos/.../contents/HANDOFF.md`)で直接読み書きする方式**に変更（`git`コマンド自体は使わない）
+    - `bitbank-gas-meta/scripts/meta-consult-cron/run.sh`を改修: cron実行前にGitHubから最新のHANDOFF.mdを取得・実行後に変更があればGitHubへpushするようにした
+    - 認証はGitHub Fine-grained PAT（`ozakiyo/tradepulse`限定、Contents:Read/Write）。VPS側`/opt/tradePulseNode/meta-consult/.github-token`に保存（chmod 600、Git管理外）。ユーザー発行・Claude Codeが設定
+    - GET/PUT双方とも動作確認済み（PUTは内容無変更のテストで実コミット作成まで確認、`7211d12`）
+    - 今後はcronが自動でMac⇔VPS間のHANDOFF.mdを同期する。人間側（Cursor/Claude Code）はセッション開始時に`git pull`、区切りに`git push`する運用を推奨（まだ手動）
 0c. **【新規・原因判明】`meta-dump.sh`/`meta-record.sh`が度々「Googleドライブのページが見つかりません」を返す件**（VPS側ログで9/12〜継続的に「要調査」として記録されていた): 2026-09-14夜にClaude Codeが別件で調査した際、原因は**curlのデフォルトUser-Agentに対するGoogle側のボット判定**と判明（ブラウザ相当のUser-Agentを付ければ200 OKで正常動作）。実害なし（後続dumpで正常反映確認済みのため）だが、`meta-dump.sh`/`meta-record.sh`のcurl呼び出しに`-A "Mozilla/5.0..."`を足せば、この紛らわしいログ自体を無くせる。低優先度・未修正
 0. **各チームDB(ops_profits/bot_positions)の月間累計とMETA月間累計が一致しない**（2026-09-14確認）。L/N/Oで数百〜数千円の差異（例: O は META −4510円台 vs DB集計 −1624円台）。原因未特定（集計期間の切り方の違いか別ソースの可能性、未確認）
 0. **各チームDB(ops_profits/bot_positions)の月間累計とMETA月間累計が一致しない**（2026-09-14確認）。L/N/Oで数百〜数千円の差異（例: O は META −4510円台 vs DB集計 −1624円台）。原因未特定（集計期間の切り方の違いか別ソースの可能性、未確認）
@@ -118,6 +124,16 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-15 10:1x JST — Claude Code
+- ユーザー指示: HANDOFF.mdのローカル/VPS分岐を恒久的に解決したい（1ファイルにできるか、という質問から発展）
+- 調査の結果、MacもVPSも同じGitHubリモート(`ozakiyo/tradepulse`, private)を設定済みだが、HANDOFF.md自体がどちらでも`git add`されたことがなかったと判明（意図的な`.gitignore`ではない）
+- Mac側でHANDOFF.mdをGitへ追加（誤って`bitbank-gas-team-j/`の無関係な既存ステージ差分を巻き込みかけたが、push前に`git reset`で気づいて修正・HANDOFF.mdのみのコミットにし直した）。ユーザー承認の上、ユーザー自身の手でpush（Claude Codeからの`git push`は自動モードの分類器でブロックされたため）
+- VPS(`/opt/tradePulseNode`)は各チームディレクトリが数ヶ月分git管理外のままrsyncデプロイされており、ブランチ全体の`git pull`/`git push`は無関係な差分を巻き込む危険があると判断。HANDOFF.md 1ファイルだけをGitHub Contents APIで直接読み書きする方式に変更
+- ユーザーがGitHub Fine-grained PAT（`ozakiyo/tradepulse`限定、Contents:Read/Write）を発行、VPS側`/opt/tradePulseNode/meta-consult/.github-token`に保存（chmod 600、Git管理外、値はHANDOFFに書かない）
+- `meta-consult-cron/run.sh`を改修: cron実行前にGitHub APIからHANDOFF.mdを取得・実行後に変更があればAPIでpush。GET/PUTとも動作確認済み（PUTは無変更テストで実コミット作成まで確認）
+- 副産物: 最初`git config --global credential.helper store`でgit認証を試みたが、VPSの巨大な古いチェックアウトで`non-fast-forward`となったためAPI方式に切り替え。credential storeとテスト用`.git-credentials`は後片付け済み
+- コード変更: `bitbank-gas-meta/scripts/meta-consult-cron/run.sh`（ローカル・VPS両方に反映済み）。Mac/VPSどちらのHANDOFF.mdも現在GitHub上の同一コミットと一致
 
 ### 2026-09-15 09:30 JST — Claude Code
 - ユーザーからの朝の定例確認依頼で、①K/P再開判断結果 ②昨夜のAIプロンプト変更による出力フォーマット崩れの有無 ③9/14実績 を確認
