@@ -111,6 +111,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-17 06:03 JST — Claude Code（定期AI協議）
+- pending 2件を判断（type=resumeはCursor対象外、type=exitはCursor意見取得済み）:
+  - team=S type=resume decision=rejected rationale=前回の再開適用(9/17 00:36:45)からわずか16分後(00:52:43)に再度停止しており、直後の急な再停止という不安定な兆候がある。今回の根拠も「下落は僅か」「1時間足で反発」という定性的記述にとどまり、具体的な下落率の数値や直近の再停止サイクルの原因説明がない。情報不足のため今回は却下し、次回判断に委ねる
+  - team=M type=exit refId=mona_jpy decision=rejected rationale=reverse energyスコア29.3は、直近承認したqtum_jpy(スコア42.5がcutNowMinReverseScore=38を超過)の水準を下回る。「方針変更で閾値を引き下げた」とあるが新閾値の具体的な数値が示されていない。確信が持てないため却下し、ポジションはhard_slで保護継続 cursor=neutral（ポジションの含み損額・建値・数量やスコア算出根拠を外部検証できず中立）
+
 ### 2026-09-17 00:35 JST — Claude Code（定期AI協議）
 - pending 4件を判断（type=paramsのみCursor意見取得、type=resumeは対象外）:
   - team=K type=resume decision=approved rationale=Gemini信頼度0.95、「1h下落-0.08%/2h下落-0.18%」と具体的な定量根拠あり、直近K損益も安定推移で矛盾なし
