@@ -111,6 +111,14 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-17 00:35 JST — Claude Code（定期AI協議）
+- pending 4件を判断（type=paramsのみCursor意見取得、type=resumeは対象外）:
+  - team=K type=resume decision=approved rationale=Gemini信頼度0.95、「1h下落-0.08%/2h下落-0.18%」と具体的な定量根拠あり、直近K損益も安定推移で矛盾なし
+  - team=P type=resume decision=rejected rationale=Gemini根拠が「下落は安定/プラス」という定性的記述にとどまり定量指標なし。信頼度0.88はPの直近早期再開最低信頼度(0.9前後)を下回る可能性があり、ライブ資金のため安全側に倒し却下。次回、定量根拠を伴う再提案を待つ
+  - team=K type=params decision=rejected rationale=learnedBarHoursの4⇔8切替をここ数週間で繰り返しており(9/13に8へ変更したばかり)、「信頼度0.92付近でstay_pausedが長引く」との根拠を裏付けるデータなし。Cursorもneutralで同様の懸念を指摘し3者合意に届かず却下 cursor=neutral
+  - team=S type=resume decision=approved rationale=9/15のfalse stop判定を受けしきい値緩和済みで、今回のGemini根拠(短期下落安定・cascading dump riskなし)とも整合。デモ運用でリスク限定的、信頼度0.88・直近PnLも安定のため承認
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpで4件とも正常に記録・反映されていることを確認済み（原因判明・未解決0c参照）
+
 ### 2026-09-16 15:00 JST — Claude Code（定期AI協議）
 - pending 2件を判断（type=resumeのためCursor意見取得は対象外）:
   - team=P type=resume decision=rejected rationale=早期再開ルート(confidence0.85、early_ai)による提案だが、前回07:49の再開からわずか約1時間11分後(09:01)に再度急落停止が発動しており、「下落は落ち着いた」という定性的根拠が直近の実挙動と矛盾している。具体的な下落率等の定量指標も示されていない。ライブ資金Botのため安全側に倒し今回も却下。数時間以上の安定観察期間と定量根拠を伴う再提案を待つ
