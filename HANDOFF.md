@@ -111,6 +111,13 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-18 00:40 JST — Claude Code（定期AI協議）
+- pending 3件を判断（type=paramsのみCursor意見取得、type=resumeは対象外）:
+  - team=P type=resume decision=rejected rationale=前回9/16 00:34承認→適用も約2時間で再度急落停止し、以降3回連続で却下されてきた経緯がある。今回の提案(confidence 0.95、「短期下落軽微・SMA上・傾き非負」)も直近の再停止と矛盾しない新たな判断材料が無いため、安全側に倒し今回も却下。安定継続時間が十分に長くなった時点で再検討
+  - team=K type=params decision=rejected rationale=learnedBarHours 8→4への差し戻しはここ数週間繰り返してきたノイズ低減方針(4→8)を覆すが新たな決定的根拠に乏しい。加えてrationale文中は「drop1hPausePctを-3.0%へ」と説明しているが実際の提案値は-3.5%であり数値の整合性に疑義がある。Cursorはunavailable(HTTP 500)で確認取れず、直近K paramsは5回連続で却下されてきた経緯もあり、今回も安全側で却下 cursor=unavailable
+  - team=S type=resume decision=approved rationale=短期下落が落ち着き1h/6h勢いが回復という具体的根拠、confidence 0.88。直近のS再開提案は5回中4回承認されてきたパターンとも整合し、デモ運用のためダウンサイドも限定的なため承認
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpで3件とも正常に記録・反映されていることを確認済み（原因判明・未解決0c参照）
+
 ### 2026-09-17 15:05 JST — Claude Code（定期AI協議）
 - pending 2件を判断（いずれもtype=resumeのためCursor意見取得は対象外）:
   - team=P type=resume decision=rejected rationale=再開理由が「下落は軽微・安全域内」という定性的な説明のみで具体的な下落率等の数値根拠が無い。Pは本番資金かつ同様の定性的理由での再開提案が直近数日間繰り返し却下されてきた経緯があり、状況が変わった裏付けもないため、安全側に倒し今回も却下。次回、1h/2h等の具体的な下落率・回復データが示されれば再検討
