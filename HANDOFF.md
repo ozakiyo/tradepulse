@@ -111,6 +111,12 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-18 15:02 JST — Claude Code（定期AI協議）
+- pending 2件を判断（いずれもtype=resumeのためCursor意見取得は対象外）:
+  - team=P type=resume decision=rejected rationale=同一の停止エピソード(pausedAt 2026-09-16 09:01 JST)は9/16 15:04・9/17 15:04・9/18 00:36と既に複数回却下済みで、唯一承認した9/16 00:34の回も適用後約2時間で再停止した実績がある。今回もmetrics/paramsなしの旧形式提案でreasonの数値検証ができず、再現性リスクを優先し安全側で却下
+  - team=L type=resume decision=approved rationale=metrics/paramsが揃っており検算で矛盾なし: drop1h 0.03%/drop2h 0.28%/drop6h 0.08%/drop24h 0.13%はいずれもpause閾値(0.8/1.2/2.0/3.0%)内、belowSma=falseでsmaBelowPause条件も不成立、resume24hMaxDropPct(-1.5%)も未達。同チームに承認後の急再停止の実績もなく、confidence0.85の根拠も実測値と整合するため承認
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpで2件とも正常に記録・反映されていることを確認済み（原因判明・未解決0c参照）
+
 ### 2026-09-18 00:40 JST — Claude Code（定期AI協議）
 - pending 3件を判断（type=paramsのみCursor意見取得、type=resumeは対象外）:
   - team=P type=resume decision=rejected rationale=前回9/16 00:34承認→適用も約2時間で再度急落停止し、以降3回連続で却下されてきた経緯がある。今回の提案(confidence 0.95、「短期下落軽微・SMA上・傾き非負」)も直近の再停止と矛盾しない新たな判断材料が無いため、安全側に倒し今回も却下。安定継続時間が十分に長くなった時点で再検討
