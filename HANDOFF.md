@@ -111,6 +111,14 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-19 15:05 JST — Claude Code（定期AI協議）
+- pending 4件を判断（type=exitのみCursor意見取得、type=resumeは対象外）:
+  - team=K type=resume decision=approved rationale=metrics検算: drop1h_1h -0.07%/drop6h_1h +0.03%/drop24h_1h +6.01%はresume24hMaxDropPct(-2%)を大きく上回る回復、hardFloorHit=false・belowSma=false・smaSlopeNeg=falseでreasonと矛盾なし（confidence0.95）。直近の再開(9/17 05:26適用)も約41時間安定稼働しており急速再停止の実績が見られないため承認
+  - team=P type=resume decision=rejected rationale=reasonは「大きな24h下落にも関わらず」としているが実測drop24h_1hは+6.48%（下落ではなく上昇）でreasonと矛盾。加えて9/16 07:49に一度承認・適用したが約1時間11分後(09:01)に再停止した実績があり、以降9/16〜9/19の7連続で却下継続中。再現性リスクを優先し今回も却下
+  - team=S type=resume decision=rejected rationale=reasonは「6hの下落後」としているが実測drop6h_1hは+6.76%（下落ではなく上昇）でreasonと矛盾。加えて直近3日間で承認→適用後1.5〜16時間程度で再停止するサイクルを複数回繰り返しており(9/16 15:08適用→18:26再提案、9/17 00:36適用→03:49再提案、9/17 15:05適用→16:28再提案、9/18 00:39適用→16:57再提案)、再現性リスクが高いため安全側に倒し却下
+  - team=M type=exit refId=mona_jpy decision=rejected rationale=verdictはtake_profitだがreasonが「strong_against -0.49%」と逆行を示す文言で矛盾。Cursorもneutralで実PnL・反転根拠・閾値適合を確認できないとしており3者合意に至らないため却下。ポジションはhard_slに守られたまま保持継続 cursor=neutral（take_profitと理由のstrong_against -0.49%が矛盾し確認できないため保留）
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpで4件とも正常に記録・反映されていることを確認済み（原因判明・未解決0c参照）
+
 ### 2026-09-19 15:0x JST — Claude Code（定期AI協議）
 - pending 2件を判断（type=paramsのみCursor意見取得、type=resumeは対象外）:
   - team=K type=params decision=approved rationale=Geminiタイムアウトによるheuristicフォールバックだが、変更はcooldownHours 42h→48h、resumeStableHours 10h→11hのみで急落判定閾値・AI信頼度は据え置き。より慎重化する方向の小幅調整で、K月間+1530/年間+2475の損益トレンドとも矛盾しない。変更内容自体に危険性は無いため承認 cursor=neutral（変更方向は保守的だが根拠の幅の説明不足で中立、reject ではない）
