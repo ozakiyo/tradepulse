@@ -199,6 +199,14 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-21 06:00 JST — Claude Code（定期AI協議）
+- pending 3件を判断（resume/exitともCursor意見取得）:
+  - team=P type=resume decision=rejected rationale=本日13:36頃(pausedAt 2026-09-20T04:36:03Z)からの同一停止エピソードで、15:03に一度却下済み。今回のmetrics(drop1h+0.03%/drop2h+0.19%/drop6h+0.23%/drop24h-0.67%=ネット上昇)はpause閾値・resume24hMaxDropPct(-3%)内でhardFloorHit=falseと矛盾なくconfidence0.88も早期再開基準(0.85)超だが、クールダウン未消化(約7.6/18h)でbelowSma=true・smaSlopeNeg=true(SMA下・下降スロープ)は15:03時点から変化なし。Cursorも中立で3者合意に至らず、再現性リスクを優先し安全側で今回も却下 cursor=neutral（短期下落は閾値より遥かに小さく24hはネット上昇だが、クールダウン未消化・SMA下かつスロープ負のままの早期再開で二次急落リスクの否定は推測に留まる）
+  - team=M type=exit refId=eth_jpy decision=rejected rationale=verdictはtake_profitでreasonは「fading trend momentum(fading=true)」を根拠とするが、実データのenergy.reverse.fading=falseで矛盾。reverse.hintもhold_for_profitでADX17.6は弱いトレンドに過ぎず、利確を急ぐ根拠が薄い。含み益+4.15%(1.6円)はhard_slで保護されたまま保持継続とし却下 cursor=reject（Geminiのfading=true記述が実データfading=falseと矛盾、数値根拠と不一致の利確提案は承認しない）
+  - team=M type=exit refId=mona_jpy decision=rejected rationale=含み益+1.83%(0円、極小建玉)に対しenergy.reverse.hintはwait_scratchでtake_profitと方向性が一致せず、quality=lowで信頼度も低い。日足・H4方向は共にupで反転根拠も弱く、Cursorも中立で3者合意に至らないため安全側に倒し却下 cursor=neutral（利確根拠と継続根拠が拮抗し確信が持てない）
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpで3件とも正常にrejectedとして記録・pending解消を確認済み（原因判明・未解決0c参照）
+- 判断前にHANDOFF.mdの本日(9/20)08:15-08:20・15:05エントリを確認し、Pの当該pausedAtが同日15:03に一度却下済みの継続エピソードであることを踏まえて判断（未解決13番の手順どおり）。コード変更なし
+
 ### 2026-09-20 15:05 JST — Claude Code（定期AI協議）
 - team=P type=resume decision=rejected rationale=metrics(drop1h+0.08%/drop2h+0.02%/drop6h_1h-0.78%/drop24h_1h-0.73%)自体はpause閾値・resume24hMaxDropPct(-3%)内でhardFloorHit=falseと矛盾なしだが、判断前にHANDOFF.mdの本日08:15-08:20エントリを確認したところ、同じPで本日08:15:46に一度approved・08:17:52適用された直後、約1分後の08:18:59には別の再開提案が既に「承認→短時間再停止」として却下されている実績があった。再現性リスクを優先し安全側に倒し却下 cursor=neutral（1-2hは小幅プラス、6h/24hも閾値内でhardFloor未達だが、早期再開(CD18h)でbelowSmaかつsmaSlopeNeg残存、position/energy情報もなく在庫リスク未確認のため承認確信は持てない）
 - meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpでstatus=rejectedとして正常に記録されていることを確認済み（原因判明・未解決0c参照）
