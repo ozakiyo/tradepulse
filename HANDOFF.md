@@ -199,6 +199,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-20 15:05 JST — Claude Code（定期AI協議）
+- team=P type=resume decision=rejected rationale=metrics(drop1h+0.08%/drop2h+0.02%/drop6h_1h-0.78%/drop24h_1h-0.73%)自体はpause閾値・resume24hMaxDropPct(-3%)内でhardFloorHit=falseと矛盾なしだが、判断前にHANDOFF.mdの本日08:15-08:20エントリを確認したところ、同じPで本日08:15:46に一度approved・08:17:52適用された直後、約1分後の08:18:59には別の再開提案が既に「承認→短時間再停止」として却下されている実績があった。再現性リスクを優先し安全側に倒し却下 cursor=neutral（1-2hは小幅プラス、6h/24hも閾値内でhardFloor未達だが、早期再開(CD18h)でbelowSmaかつsmaSlopeNeg残存、position/energy情報もなく在庫リスク未確認のため承認確信は持てない）
+- meta-record.sh実行直後の標準出力は今回も「Googleドライブのページが見つかりません」HTMLだったが、後続dumpでstatus=rejectedとして正常に記録されていることを確認済み（原因判明・未解決0c参照）
+- pending提案は上記1件のみ（他は既に決定済み）。コード変更なし
+
 ### 2026-09-20 09:20 JST — Claude Code
 - 朝の定例確認で、META協議の0:30・6:00 JST巡回が2回連続で失敗していたことを発見。エラー: 「Your organization has disabled Claude subscription access for Claude Code」。原因はユーザーのClaude契約期限切れとみられ、その場で契約更新。更新後、手動実行でClaude Codeヘッドレスが正常復帰（exit=0）したことを確認
 - ユーザー指示で、resume判断にもCursorの意見を追加し、①通常時=Claude+Cursor、②片方不通=動く方が単独判断、③両方連続2回不通=Geminiの自己判断（各Bot側で信頼度しきい値を通過済みの提案）を自動適用、という3段フォールバックを新規実装:
