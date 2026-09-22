@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-23 00:33 JST / **Claude Code** |
+| 最終更新 | 2026-09-23 06:03 JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
@@ -207,6 +207,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-23 06:03 JST — Claude Code（定期AI協議）
+- team=L type=resume decision=approved rationale=metrics検算: drop1h+0.02%/drop2h-0.01%/drop6h-0.14%/drop24h-0.29%はいずれもpause閾値(drop1h-0.8%/drop2h-1.2%/drop6h-2%)やresume24hMaxDropPct(-1.5%)から十分離れており満たす。belowSma=true・smaSlopeNeg=trueは残るが、Lの停止ルール上belowSmaはdrop1h≤-0.4%またはdrop2h≤-0.6%と組み合わさって初めて停止材料化するところ、実測はそのいずれも満たさずreasonと整合。cooldown(6h)は現在基準で完了(経過6.7h)、confidence0.75は通常再開閾値(0.6)を超過。HANDOFF確認: Lは9/21 16:02再開→9/22 02:34停止(約10.5h)、9/22 15:08承認・適用→9/22 23:16停止(約8.1h)と直近は8〜10時間程度の周期で推移しており、S/Pで見られた『承認→数時間以内で再停止』の反復フラップとは異なる。急落ショートの決済も同時に行われる点は把握済み。デモチームでダウンサイドも限定的。Cursorもapprove、3者合意が得られたため承認 cursor=approve（クールダウン完了(経過6.7h/必要6h)。提案時点のdrop1h〜24hはいずれも一時停止閾値より大幅に浅く、resume24hMaxDropPct(-1.5%)も満たす。信頼度0.75は再開基準(0.6)以上。SMA下方・傾き負は残るが急落根拠は薄い）
+- 判断前にHANDOFF.mdでLの直近1〜2週間の履歴（9/21 15:09却下・16:02別経路での再開・9/22 15:08承認とその後の再停止周期）を確認済み。pendingは本件1件のみ。コード変更なし
 
 ### 2026-09-23 00:33 JST — Claude Code（定期AI協議）
 - team=K type=params decision=rejected rationale=drop6hPausePct-0.06→-0.065とaiEarlyResumeMinConfidence0.95→0.9への緩和で、後者はK自身の早期再開の安全閾値を実質0.05引き下げる内容。Geminiの根拠は「0.92でブロックされたstop_false削減」という説明のみで、定量的なバックテストやmetricsPlainの裏付けがない。Kは本番・実資金Botであり、Cursorも同様に定量根拠不足を理由に保留(neutral)。安全側の閾値緩和を確証なく承認するのは避け、今回は却下。次回、具体的なブロック事例の頻度や損益影響の定量データが示されれば再検討。 cursor=neutral（変更はdrop6hPausePct緩和とaiEarlyResumeMinConfidence0.95→0.9の2点のみ。後者は早期再開の安全閾を実質0.05緩和する内容で、metricsPlain・position・energy等の定量根拠が提案に無く、ライブ資金向けの安全パラメータ緩和として承認する確証が足りないため保留）
