@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-22 06:02 JST / **Claude Code** |
+| 最終更新 | 2026-09-22 15:08 JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
@@ -207,6 +207,12 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-22 15:08 JST — Claude Code（定期AI協議）
+- team=K type=resume decision=approved rationale=metrics検算: dropApprox24h+6.58%はresume24hMaxDropPct(-2%)を大きく上回り、drop1h/2h/6hも全て上昇方向でpause閾値と矛盾なし。hardFloorHit=false、価格はSMA20上・スロープ非負でreasonと整合。停止経過20.5hはearlyResumeMinHours(4h)・resumeStableHours(11h)を超え、confidence0.95はaiEarlyResumeMinConfidence(0.95)を満たす。HANDOFF確認: 直前のK停止(9/20 09:03再開)は約32〜33時間安定稼働してから今回のpausedAt(9/21 18:37)に至っており、承認→短時間再停止の再現パターンは見られない。Cursorはneutral(metricsが提案から6.5h前で古い・position情報無しとして保留、方向性への異論ではない)だが、古さのみを理由に機械的却下しない方針に従い承認側に倒した cursor=neutral（早期再開の数値条件は提案時点では満たすが、クールダウン残約27.6hかつmetricsが約6.5h前でposition情報もなくライブ再開の確信が持てないため保留）
+- team=S type=resume decision=rejected rationale=metrics自体は良好(drop1h〜24hすべて上昇方向でresume24hMaxDropPct(-3%)を大きく上回り、hardFloorHit=false・belowSma=false・smaSlopeNeg=false)でCursorもapproveだったが、HANDOFF確認の結果、直前の同種提案(本日06:02巡回でtype=resume承認、pausedAt 9/21 17:24)の適用後、わずか約25分後の06:27:38 JSTに新たなpausedAtで再停止していることが判明(今回のpending提案はその再停止に対する再開提案そのもの)。Sは9/16〜9/19にも「承認→1分〜16時間で再停止」を繰り返した実績があり、今回はその再現パターンが同日中に発生した直後の再提案にあたるため、metrics/Cursorが良好に見えても再現性リスクを最優先し安全側に倒し却下した cursor=approve（metricsPlainの1h/6h/24hがいずれも上昇、SMA上・hardFloor未達、クールダウン完了・confidence0.88はearlyResume閾値0.85以上として承認）
+- team=L type=resume decision=approved rationale=metrics検算: drop1h+0.034%/drop2h+0.022%/drop6h+0.034%は微増、drop24h-0.108%はresume24hMaxDropPct(-1.5%)内に十分収まり矛盾なし。belowSma=true・smaSlopeNeg=trueは残るが、Lのsmaトレンド条件(drop1h≤-0.4%またはdrop2h≤-0.6%でbelowSmaが停止材料化)は実測値がプラスのため該当せず、reasonと整合。cooldown(6h)消化済み(経過12.5h)でconfidence0.75は通常再開の閾値0.6を超過。HANDOFF確認: 直前のL再開(9/21 16:02 flat_no_short_early_exitで実質再開)から今回のpausedAt(9/22 02:34)まで約10.5時間の安定稼働があり、S/Pのような承認→数十分〜数時間での再停止の反復パターンはLには見られない(9/21 15:09の却下は別のpausedAt・クールダウン未消化が理由で今回とは状況が異なる)。Cursorはneutral(metricsの古さ・belowSma残存を理由に保留で方向性への異論ではない)のため承認側に倒した。急落ショートの決済も同時に行われる点は把握済み cursor=neutral（クールダウン消化済み・24hも再開閾値から遠いが、metricsが約5.7h前でbelowSma/smaSlopeNeg残存のため確信は持てないとして保留）
+- 判断前にHANDOFF.mdでK/S/Lそれぞれの直近1〜2週間の履歴（同一pausedAt近傍、承認→短時間再停止パターンの有無）を確認済み。特にSは今回まさにそのパターンの再発だったため却下。pendingは本件3件のみ。コード変更なし
 
 ### 2026-09-22 06:02 JST — Claude Code（定期AI協議）
 - team=S type=resume decision=approved rationale=metrics検算: drop1h-0.1%はほぼ横ばい、drop2h+1.3%/drop6h+6.07%/drop24h+13.2%はいずれも上昇方向でresume24hMaxDropPct(-3%、下落方向の許容floor)を大きく上回って満たす。hardFloorHit=false・belowSma=false・smaSlopeNeg=falseとも矛盾なし。cooldown(6h)は消化済み(pausedElapsedHoursNow12.6h)で通常再開基準(aiResumeMinConfidence0.6)適用対象、confidence0.75はこれを超過。HANDOFF確認: Sは9/16〜9/19に「承認→1.5〜16時間で再停止」を繰り返した経緯があるが、直近の9/20 08:19再開以降は再停止なく33時間安定稼働してから今回のpausedAt(9/21 17:24)に至っており、直近の再現性リスクの兆候はない。Cursorはreject(drop24h≈13.2%がresume24hMaxDropPct超過と主張)だが、drop24hは正の値=上昇方向でありresume24hMaxDropPct(-3%)は下落方向のfloorのため、9/21 22:30のP判断と同一の符号読み違い(未解決18の既知バグ)と判断し不採用、承認側に倒した cursor=reject（クールダウンは充足しconfidence0.75も閾値0.6以上だが、提案時点metricsのdrop24h≈13.2%がresume24hMaxDropPct(-3%)を大幅超過と主張。drop6h≈6.1%もpause目安を上回るとも。短期のdrop1h安定のみでは再開根拠が弱く指標は提案から約4.7h前で現状未確認、として承認不可の意見）
