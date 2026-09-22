@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-22 15:08 JST / **Claude Code** |
+| 最終更新 | 2026-09-23 00:33 JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
@@ -207,6 +207,12 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-23 00:33 JST — Claude Code（定期AI協議）
+- team=K type=params decision=rejected rationale=drop6hPausePct-0.06→-0.065とaiEarlyResumeMinConfidence0.95→0.9への緩和で、後者はK自身の早期再開の安全閾値を実質0.05引き下げる内容。Geminiの根拠は「0.92でブロックされたstop_false削減」という説明のみで、定量的なバックテストやmetricsPlainの裏付けがない。Kは本番・実資金Botであり、Cursorも同様に定量根拠不足を理由に保留(neutral)。安全側の閾値緩和を確証なく承認するのは避け、今回は却下。次回、具体的なブロック事例の頻度や損益影響の定量データが示されれば再検討。 cursor=neutral（変更はdrop6hPausePct緩和とaiEarlyResumeMinConfidence0.95→0.9の2点のみ。後者は早期再開の安全閾を実質0.05緩和する内容で、metricsPlain・position・energy等の定量根拠が提案に無く、ライブ資金向けの安全パラメータ緩和として承認する確証が足りないため保留）
+- team=S type=resume decision=approved rationale=metricsPlain検算: 1h/6h/24hいずれも横ばい〜微増(24h -0.05%はresume_gate -3%を十分クリア)、SMA20上・hardFloor未達で、reasonと矛盾なし。クールダウン(6h)は現在基準で完了(経過18.1h)、confidence0.9は通常・早期いずれの閾値も超過。HANDOFF確認: 直前の同一エピソード(9/22 06:02承認→06:27再停止→15:08却下)以降、Sは今回のpausedAt(06:27:38)のまま18時間再開されておらず、承認直後の再フラップは発生していない。デモ運用でダウンサイドも限定的。Cursorもapprove。3者合意が得られたため承認。 cursor=approve（クールダウンは現在基準で完了、metricsPlainは学習窓・時計時間とも大幅下落なし、resumeゲートを満たしSMA20上・hardFloor未達。AI信頼度0.9も閾値超で再開条件は揃っている）
+- team=S type=params decision=rejected rationale=Gemini API失敗(429/503連続)によるheuristic日次フォールバック提案で、市況分析に基づく根拠が一切ない(rationaleはAPI失敗ログのみ)。変更のうちlearnedBarHours 4→8は急落判定の実時間窓を倍にする構造的な変更で、drop1hPausePctの微調整とは重みが異なる。過去にKの同種のlearnedBarHours往復提案(4⇔8)は「根拠不十分」「往復が不安定」として繰り返し却下してきた前例があり、今回のSも同様に市況的な裏付けがない。Cursorも定量根拠不足でneutral。3者合意に届かないため却下。 cursor=neutral（AI失敗後のheuristic日次提案で根拠となるposition/energy/metricsPlainがない。learnedBarHoursの4→8は急落判定の時間窓を大きく変える一方、rationaleは429/503の失敗報告のみで市況に基づく妥当性を判断できない）
+- 判断前にHANDOFF.mdでK(params)・S(resume/params)それぞれの直近履歴（Kのlearnedbarhours往復・過去の閾値緩和/保守化の傾向、Sの「承認→短時間再停止」パターンと直近の安定継続状況）を確認済み。pendingは本件3件のみ。コード変更なし
 
 ### 2026-09-22 15:08 JST — Claude Code（定期AI協議）
 - team=K type=resume decision=approved rationale=metrics検算: dropApprox24h+6.58%はresume24hMaxDropPct(-2%)を大きく上回り、drop1h/2h/6hも全て上昇方向でpause閾値と矛盾なし。hardFloorHit=false、価格はSMA20上・スロープ非負でreasonと整合。停止経過20.5hはearlyResumeMinHours(4h)・resumeStableHours(11h)を超え、confidence0.95はaiEarlyResumeMinConfidence(0.95)を満たす。HANDOFF確認: 直前のK停止(9/20 09:03再開)は約32〜33時間安定稼働してから今回のpausedAt(9/21 18:37)に至っており、承認→短時間再停止の再現パターンは見られない。Cursorはneutral(metricsが提案から6.5h前で古い・position情報無しとして保留、方向性への異論ではない)だが、古さのみを理由に機械的却下しない方針に従い承認側に倒した cursor=neutral（早期再開の数値条件は提案時点では満たすが、クールダウン残約27.6hかつmetricsが約6.5h前でposition情報もなくライブ再開の確信が持てないため保留）
