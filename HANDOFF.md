@@ -208,6 +208,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-25 06:05 JST — Claude Code（定期AI協議）
+- team=K type=params decision=rejected rationale=Gemini API失敗(429/503連続)によるheuristic日次フォールバック提案で、市況分析に基づく根拠が一切ない(rationaleは失敗ログのみでposition/energy/metricsPlain等の裏付けなし)。learnedBarHours4→8は急落判定の実時間窓を倍にする構造的変更で、drop1hPausePctの微調整(-0.03→-0.035)とは重みが異なる。K自身の過去のlearnedBarHours往復提案(3週連続却下、9/23 00:33にも他閾値緩和を定量根拠不足で却下)の前例、および同一巡回内のP params(00:37)・9/23のS paramsで全く同型(Gemini429/503起因heuristic、learnedBarHours4→8)の提案を市況根拠皆無として却下した前例と整合させ、今回も却下。 cursor=neutral（AI失敗後のheuristic提案で、市場根拠(position/energy/metricsPlain等)がない。learnedBarHours 4→8は急落判定の時間窓を実質倍にする大きな変更だが、根拠が薄いため承認・却下とも判断できない）
+- 判断前にHANDOFF.mdでK(params)の直近履歴（learnedBarHours往復の3週連続却下前例、9/23 00:33の他閾値緩和却下、同一巡回内P params・9/23 S paramsの同型heuristic却下前例）を確認済み。pendingは本件1件のみ。コード変更なし
+
 ### 2026-09-25 00:37 JST — Claude Code（定期AI協議）
 - team=K type=resume decision=approved rationale=metricsPlain検算: 学習窓4/8/24/96hの変化率(-0.79%/+0.05%/-1.86%/+5.19%)はpause閾値(-3/-4/-5/-8%)から十分な余裕があり、resumeゲート(約24h -1.86%≧-3%)も満たす。hardFloorHit=false。belowSma=trueだがsmaSlopeNeg=false・smaBelowPause=falseでK自身のルール上単独では停止理由にならない。クールダウン残り0.2h(約12分)のearly_ai経路で、信頼度基準0.85をconfidence0.88が上回り、経過5.8hはearlyResumeMinHours(1h)も満たす。HANDOFF確認: 直近のK再開(9/22 15:08承認)は約2日間安定稼働してから今回の新規停止(pausedAt 9/24 18:44)に至っており、承認直後の短時間再停止パターンは見られない。月間+2094/年間+3039と損益も安定。 cursor=neutral（metricsが約4.4h前・クールダウン残存を懸念、reject ではなく方向性への異論なし）
 - team=P type=resume decision=approved rationale=metrics検算: 学習窓drop1h〜24hはいずれも0%、時計時間ベースのdrop1h_1h+0.12%/drop6h_1h-0.36%/drop24h_1h-1.56%も急落閾値から十分離れて矛盾なし。resumeゲート(約24h 0%≧-3%)を満たし、price_above_sma20=true・hardFloorHit=false。クールダウン(6h)は現在基準で完全消化(経過25.4h、cooldownFinishedNow=true)で通常再開基準(0.55)適用対象、confidence0.8は十分上回る。HANDOFF確認: 同一エピソード(pausedAt 9/23 23:09)は9/24 00:36・15:17の2回却下済みだが理由はいずれもクールダウン未消化のみで、今回はそれが完全終了した後の再提案。直近のP再開(9/21 22:38承認)は約39.5h安定稼働しており急速再停止の反復パターンなし。Cursorもapprove、3者合意で承認。 cursor=approve（クールダウン済・learned窓0%でpause閾値クリア、resumeゲート通過、SMA上・hard_floor未達、confidence0.8は閾値超で条件充足）
