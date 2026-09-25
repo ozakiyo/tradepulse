@@ -208,6 +208,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-26 06:03 JST — Claude Code（定期AI協議）
+- team=M type=exit refId=btc_jpy decision=rejected rationale=reasonJaは「逆行エネルギー=building(スコア62.3)」として反転が強まっていることを利確根拠にしているが、実データはenergy.reverse.rising=false・fading=trueで、逆行エネルギーはむしろ弱まりつつあることを示しており方向性が矛盾する。alignment=strong_against・ADX34.6でminusDI(26.7)>plusDI(23.1)自体は売り優勢を裏付けるが、hint=cut_nowはfading(弱まり中)の実測と整合しない。日足up/H4downと時間軸も割れている。含み益+1.5%(19.5円、建玉0.0001と極小)はhard_sl(価格まで9.36%の余裕)で保護されたまま保持継続として問題ない。9/21・9/24に繰り返しeth_jpy/xlm_jpyを却下した際と同型の「reasonJaの強まり主張と実データ(rising/fading)の食い違い」パターン、および9/25 00:37の同チーム別ポジションのbtc_jpy却下(fading主張とデータ不整合)とも整合させ、今回も却下。 cursor=neutral（提案時点では含み益+1.5%かつstrong_against(hyb=-62.3,rev=building/cut_now)で利確根拠はあるが、derived上proposedAgeHours=5.3で指標は提案時点値。reverseがfading・daily=up/h4=downの混在があり、現時点の再確認なしでは承認・却下を断定できない）
+- 判断前にHANDOFF.mdでM(exit btc_jpy)の直近履歴（9/25 00:37の同チーム別ポジションbtc_jpy却下、同型のfading矛盾パターンで9/21・9/24に却下されたeth_jpy/xlm_jpy）を確認済み。pendingは本件1件のみ。コード変更なし
+
 ### 2026-09-26 00:32 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=eth_jpy decision=rejected rationale=reasonJaは「逆行が強まったため利確」だが、実データはenergy.reverse.rising=false・intensity=fading(弱まり中)で方向性が矛盾。hint=wait_scratchも明確な利確シグナルではなく様子見を示唆するのみ。alignment=neutralでADXも+DI20.4≈-DI21.1と方向感が弱く、利確を急ぐ根拠が薄い。含み益+9.01%(実額3.5円)はhard_sl(価格まで15.6%の余裕)で保護されたまま保持継続として問題ない。9/24 15:16のxlm_jpy、および同じeth_jpyで9/21 06:00・9/24 15:17に同型のfading矛盾で却下した前例と整合させ、今回も却下。 cursor=neutral（提案から9.2時間経過し現状データ未確認。当時も逆行はfading(16.5)でhint=wait_scratchであり、take_profit:bank_on_reverseの根拠が薄い。日足up/H4 down・alignment neutralで利確必然性も弱いため、現状データなしでは承認判断できない）
 - 判断前にHANDOFF.mdでM(exit eth_jpy)の直近履歴（9/21 06:00・9/24 15:17のeth_jpy却下、9/24 15:16のxlm_jpy却下、いずれも同型のfading矛盾パターン）を確認済み。pendingは本件1件のみ。コード変更なし
