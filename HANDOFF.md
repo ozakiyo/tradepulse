@@ -208,6 +208,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-26 00:32 JST — Claude Code（定期AI協議）
+- team=M type=exit refId=eth_jpy decision=rejected rationale=reasonJaは「逆行が強まったため利確」だが、実データはenergy.reverse.rising=false・intensity=fading(弱まり中)で方向性が矛盾。hint=wait_scratchも明確な利確シグナルではなく様子見を示唆するのみ。alignment=neutralでADXも+DI20.4≈-DI21.1と方向感が弱く、利確を急ぐ根拠が薄い。含み益+9.01%(実額3.5円)はhard_sl(価格まで15.6%の余裕)で保護されたまま保持継続として問題ない。9/24 15:16のxlm_jpy、および同じeth_jpyで9/21 06:00・9/24 15:17に同型のfading矛盾で却下した前例と整合させ、今回も却下。 cursor=neutral（提案から9.2時間経過し現状データ未確認。当時も逆行はfading(16.5)でhint=wait_scratchであり、take_profit:bank_on_reverseの根拠が薄い。日足up/H4 down・alignment neutralで利確必然性も弱いため、現状データなしでは承認判断できない）
+- 判断前にHANDOFF.mdでM(exit eth_jpy)の直近履歴（9/21 06:00・9/24 15:17のeth_jpy却下、9/24 15:16のxlm_jpy却下、いずれも同型のfading矛盾パターン）を確認済み。pendingは本件1件のみ。コード変更なし
+
 ### 2026-09-25 06:05 JST — Claude Code（定期AI協議）
 - team=K type=params decision=rejected rationale=Gemini API失敗(429/503連続)によるheuristic日次フォールバック提案で、市況分析に基づく根拠が一切ない(rationaleは失敗ログのみでposition/energy/metricsPlain等の裏付けなし)。learnedBarHours4→8は急落判定の実時間窓を倍にする構造的変更で、drop1hPausePctの微調整(-0.03→-0.035)とは重みが異なる。K自身の過去のlearnedBarHours往復提案(3週連続却下、9/23 00:33にも他閾値緩和を定量根拠不足で却下)の前例、および同一巡回内のP params(00:37)・9/23のS paramsで全く同型(Gemini429/503起因heuristic、learnedBarHours4→8)の提案を市況根拠皆無として却下した前例と整合させ、今回も却下。 cursor=neutral（AI失敗後のheuristic提案で、市場根拠(position/energy/metricsPlain等)がない。learnedBarHours 4→8は急落判定の時間窓を実質倍にする大きな変更だが、根拠が薄いため承認・却下とも判断できない）
 - 判断前にHANDOFF.mdでK(params)の直近履歴（learnedBarHours往復の3週連続却下前例、9/23 00:33の他閾値緩和却下、同一巡回内P params・9/23 S paramsの同型heuristic却下前例）を確認済み。pendingは本件1件のみ。コード変更なし
