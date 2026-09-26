@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-26 19:50 JST / **Claude Code** |
+| 最終更新 | 2026-09-27 08:15 JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
@@ -210,6 +210,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-27 08:15 JST — Claude Code
+- 朝の確認（07:48 JST）: K/M/P/S/L/T とも Up・再起動0・12h ERROR 0。L は休場中 AI=skip で 429 ゼロ。9/26 本番計 +227.5円（K+30・M0・P+197.5）、9月累計 K+2,468.7・M−1.1・P+12,916
+- **Team-M 複利サイジングを実装・本番反映**（ユーザー指示）。予算=200,000円+9/27以降の手数料込み確定損益、下限なし（最小数量で継続）・上限なし（空きJPYまで）。手数料は bitbank trade_history の実約定から取得（実測 BTC テイカー0.1%）。テスト全OK、本番DBのコピーで DRY_RUN 1回実行OK、反映後起動OK（`compound on budget=200000`）。**新規買いの経路は保有3/3のため本番では未通過**。詳細は `bitbank-team-m/HANDOFF.md`
 
 ### 2026-09-27 06:10 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=eth_jpy decision=rejected rationale=含み益+9.02%(¥3.5)でaction/position.state整合は矛盾なし。過去3回(9/21・9/24・9/26)のeth_jpy却下と異なり今回はreasonJaが「fading」と正しく述べ実データと矛盾しないが、alignment=neutral・ADX15.4・quality=low・hint=wait_scratchで決定的な利確シグナルではなく政策的な機械的利確に留まる。金額極小でhard_sl(15.6%余裕)保護継続でも損失リスク限定的。3者合意に至らず却下 cursor=提案から2.5時間経過、energyはalignment=neutral・逆行fading・hint=wait_scratchで利確根拠と食い違い、ADX15.4/quality=lowも弱く確信度不足のため保留(neutral)
