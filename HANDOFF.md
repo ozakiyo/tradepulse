@@ -4,7 +4,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-26 19:40 JST / **Claude Code** |
+| 最終更新 | 2026-09-26 19:50 JST / **Claude Code** |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
 | 本番 | K・M・P（実資金） |
 | デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
@@ -189,7 +189,7 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ## 次にやること
 
 0. **【9/26】META シートの残骸を手動削除（ユーザー）**: `META_損益` の日次ログに `M-Fryer` の1行（2026-09-25・0円）。`META_チーム概要`／`META_損益` のサマリー最下行に `M-Fryer` 行があれば同じく削除（dump は META_TEAMS 基準のため表示されず未確認）
-1. **ユーザー**: bitFlyer 開設完了の連絡待ち → その後 S の API Key 設定・疎通・紙確認
+1. **ユーザー**: bitFlyer 開設完了の連絡待ち → その後 S の API Key 設定・疎通・紙確認 → `DRY_RUN=false`（本番化）。**方針確定（9/26）: Team-M は bitbank 継続、Team-S は bitFlyer 口座開設次第本番化**
 2. （任意）K の 50009 対策
 3. P 資金を Rumeway へ移すタイミングは別途指示
 4. K 停止時: S の `GEMINI_API_KEY` を K 由来へ切替
@@ -210,6 +210,9 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-09-26 19:50 JST — Claude Code
+- ユーザー方針確定: **Team-M は bitbank のまま継続**（銘柄数が多いため）、**Team-S は bitFlyer 口座開設次第そちらで本番化**（S のコードは既に bitFlyer 版・現在 DRY_RUN デモ）
 
 ### 2026-09-26 19:40 JST — Claude Code
 - 全チーム稼働確認（19:16 JST）: K/M/P/S/L/T とも Up・再起動0・直近1hエラー0。META 協議 health も claude/cursor 連続失敗0
