@@ -211,6 +211,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-28 00:31 JST — Claude Code（定期AI協議）
+- team=S type=params decision=approved rationale=aiStopMinConfidence0.6→0.65のみの小幅0.05調整で、drop*PausePct・learnedBarHours等の急落判定の核心的な閾値は据え置き。9/16〜9/22に既知のS頻繁停止/再開サイクル課題への対応方向として9/24 00:36承認分(aiStopMinConfidence0.55→0.6等)と同方向の継続的調整。前回承認時もCursorは同様に定量的な誤停止率データが無い点のみを理由にneutralであり、今回も同型のためその前例と整合させ承認。デモ運用でダウンサイドも限定的。 cursor=neutral（変更はaiStopMinConfidence 0.60→0.65のみで急落系閾値は据え置きだが、誤停止の件数・頻度・当時の信頼度分布などの根拠がなく、効果と副作用を検証できないため承認判断は保留）
+- 判断前にHANDOFF.mdでS(params)の直近履歴（9/23 00:33のheuristicフォールバック却下、9/24 00:36の同種小幅調整承認＝今回と同型のCursor neutralパターン）を確認済み。pendingは本件1件のみ。コード変更なし
+
 ### 2026-09-27 15:02 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=btc_jpy decision=rejected rationale=action/position.stateの整合(含み益+2.14%・take_profit)自体は矛盾ないが、reasonJaは「全体の勢いが売り優勢(逆行方向)に転じた」と述べる一方、実データはenergy.reverse.intensity=fading・rising=false(逆行はむしろ弱まり中)でhint=wait_scratch(様子見/スクラッチ示唆で決定的な利確シグナルではない)、alignment=neutralで方向性が矛盾。ADX18.7は弱いトレンドでminusDI(24.6)>plusDI(20.3)もわずかな差。日足up/H4downと時間軸も割れている。金額極小(¥27.7)でhard_sl(価格まで9.93%の余裕)に守られたまま保持継続でも損失リスクは限定的。9/25 00:37・9/26 06:03の同チーム同ペア(btc_jpy)の過去2回の却下と同型の「reasonJaの強まる主張と実データ(fading/wait_scratch)の食い違い」パターンであり、今回も整合させ却下。3者合意に至らず却下 cursor=提案から約8.9時間経過し、metrics/エネルギーは提案時点の値のため現状と一致するか判断できない。加えて逆行はfading・hintはwait_scratchで、利確根拠の勢いも弱い。含み益+2.14%は事実だが、陳腐化により承認も却下も確信が持てない(neutral)
 - 判断前にHANDOFF.mdでM(exit btc_jpy)の直近履歴（9/25 00:37・9/26 06:03の同ペア却下、いずれも同型のfading/wait_scratch矛盾パターン）を確認済み。pendingは本件1件のみ。コード変更なし
