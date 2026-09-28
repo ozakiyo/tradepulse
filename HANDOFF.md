@@ -211,6 +211,9 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-29 06:01 JST — フォールバック判断（Claude Codeヘッドレス不通）
+- team=S type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: AI障害後のheuristicフォールバック提案で、根拠となるmetricsPlain・position・energyがない。learnedBarHoursを4→8へ倍増すると急落判定の時間窓が実質2倍に変わり影響が大きいが、その妥当性を裏付ける材料が不足するため承認判断は保留。 (Claude不通、Cursor neutralで安全側却下)
+
 ### 2026-09-29 00:34 JST — フォールバック判断（Claude Codeヘッドレス不通）
 - team=P type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 変更はaiEarlyResumeMinConfidenceの0.85→0.80のみで幅は小さいが、resume_lateの件数・実confidence分布・早期再開した場合の損益比較などの数値根拠がなく、根拠が薄い。ライブ資金向けに早期再開閾値を緩める可否は現状データだけでは判断できない。 (Claude不通、Cursor neutralで安全側却下)
 - team=S type=resume decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: クールダウンは現時点で完了(経過7.4h/6h)だが、根拠となるmetricsPlainは提案時点で約5時間前の値。当時も再開ゲート(-2.58% vs -3%)は余裕が薄く、SMA下・傾き負の弱トレンドは残る。現値・直近下落が更新されていないため再開可否の確信が持てない。 (Claude不通、Cursor neutralで安全側却下)
