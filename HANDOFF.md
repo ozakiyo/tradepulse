@@ -211,6 +211,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-29 00:34 JST — フォールバック判断（Claude Codeヘッドレス不通）
+- team=P type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 変更はaiEarlyResumeMinConfidenceの0.85→0.80のみで幅は小さいが、resume_lateの件数・実confidence分布・早期再開した場合の損益比較などの数値根拠がなく、根拠が薄い。ライブ資金向けに早期再開閾値を緩める可否は現状データだけでは判断できない。 (Claude不通、Cursor neutralで安全側却下)
+- team=S type=resume decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: クールダウンは現時点で完了(経過7.4h/6h)だが、根拠となるmetricsPlainは提案時点で約5時間前の値。当時も再開ゲート(-2.58% vs -3%)は余裕が薄く、SMA下・傾き負の弱トレンドは残る。現値・直近下落が更新されていないため再開可否の確信が持てない。 (Claude不通、Cursor neutralで安全側却下)
+- team=S type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 変更はaiStopMinConfidence 0.65→0.7のみで範囲は狭いが、根拠のstop_false各エピソードの数値・真偽判定や、閾値上げで取りこぼす真の急落停止の有無を提案内から検証できない。停止を起こしにくくする方向のため、根拠未確認のまま承認は控えneutral。 (Claude不通、Cursor neutralで安全側却下)
+
 ### 2026-09-28 15:06 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=eth_jpy decision=rejected rationale=reasonJaは『勢いが売り優勢(逆行方向)に転じた』とするがalignment=against(strong_againstではない)・quality=medium・ADX18.8は弱いトレンドで、逆行本体はintensity=fading・rising=false・hint=wait_scratch(様子見)であり反転が強まっているわけではない。日足・H4とも依然upで上位足トレンドは崩れていない。含み益+8.58%(実額3.3円)はhard_sl(15.27%の余裕)で保護されたまま保持継続として問題ない。9/21・9/24・9/26・9/27に同ペアで繰り返し却下してきた『reasonJaの反転主張とreverse=fading/wait_scratchの食い違い』パターンと同型であり、今回も整合させ却下。3者合意に至らず却下 cursor=提案から7.7時間経過しmetricsは提案時点のまま。含み益+8.58%で逆行(against/fading)はあるが、日足・H4はup継続、ADX18.8で弱く、reverse hintもwait_scratchのため利確の必然性が薄い。現況未更新のため承認判断を保留（neutral）
 - team=M type=exit refId=xlm_jpy decision=rejected rationale=reasonJaは『逆行エネルギー=building』として反転強まりを利確根拠にしているが、実データはreverse.rising=false・fading=trueで、intensity=building/hint=cut_nowという表示自体がrising/fading実測と矛盾する。alignment=strong_against・ADX20.6・quality=highは売り優勢を示すが、日足・H4とも依然upで上位足トレンドは崩れていない。含み益+13.45%(実額はほぼ0円)はhard_sl(18.91%の余裕)で保護されたまま保持継続として問題ない。9/24 15:16の同ペア却下時と同型の『reasonJa/energyの強まる主張とrising/fading実測の食い違い』パターンであり、今回も整合させ却下。3者合意に至らず却下 cursor=含み益+13.45%・strong_against・rev=cut_nowは利確根拠になり得るが、提案から約2時間経過し数値は提案時点のまま。かつrevがbuilding/cut_nowとrising=false・fading=trueで矛盾し、日足・H4はなおupのため、現時点の継続可否を確信できない（neutral）
