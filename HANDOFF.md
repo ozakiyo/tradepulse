@@ -211,6 +211,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-09-30 00:32 JST — Claude Code（定期AI協議）
+- team=L type=resume decision=approved rationale=metrics検算: drop1h-0.009%/drop2h+0.012%/drop6h-0.32%/drop24h-0.09%はpause閾値(-0.8/-1.2/-2/-3%)から十分乖離、resumeゲート(24h -1.5%基準)も満たす。belowSma=true・smaSlopeNeg=trueは残るが、Lの停止ルール上drop1h≤-0.4%またはdrop2h≤-0.6%と組み合わさって初めて停止材料化するところ実測はいずれも満たさずreasonと整合。クールダウン(6h)は現在基準で完全消化(経過9.7h)、confidence0.75は通常再開閾値0.6を上回る。HANDOFF確認: 直近のL resume承認(9/24 15:17)後は約5日間再停止なく安定稼働しており、承認直後の短時間再停止パターンはLに無い。Cursorはneutralで懸念は提案から約6.4h経過したmetricsの古さのみで方向性への異論なし。承認。 cursor=クールダウンは充足(経過9.7h・残り0)で提案時点の下落も閾値内だが、metricsは約6.4h前の提案時点値のみで現在の価格・安定性が確認できず、SMA下方・傾き負のまま再開を断定できないため保留（neutral）
+- 判断前にHANDOFF.mdでL(resume)の直近1〜2週間の履歴（9/22 15:08・9/23 06:03・9/24 00:36・9/24 15:17の各承認と、いずれも承認後に数時間〜数日の安定稼働が続き短時間再停止パターンが無いこと）を確認済み。pendingは本件1件のみ。コード変更なし
+
 ### 2026-09-29 06:01 JST — フォールバック判断（Claude Codeヘッドレス不通）
 - team=S type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: AI障害後のheuristicフォールバック提案で、根拠となるmetricsPlain・position・energyがない。learnedBarHoursを4→8へ倍増すると急落判定の時間窓が実質2倍に変わり影響が大きいが、その妥当性を裏付ける材料が不足するため承認判断は保留。 (Claude不通、Cursor neutralで安全側却下)
 
