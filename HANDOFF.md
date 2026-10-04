@@ -211,6 +211,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-05 00:36 JST — Claude Code（定期AI協議）
+- team=P type=params decision=rejected rationale=aiEarlyResumeMinConfidence0.85→0.8の緩和は2026-09-29・2026-10-04に同一変更が定量根拠不足(resume_late件数・信頼度分布・損益影響の裏付けなし)として2回連続却下済み。今回はepisode41/47/50・38/45を名指しした点は新しいが、各episodeの実際の信頼度値・件数・損益影響といった検証可能な数値は提示されておらず、過去の却下理由は解消されていない。新規のaiStopMinConfidence0.6→0.65も同様にepisode38/45を名指ししたのみで裏付けデータが無い。ライブ資金のPで根拠薄弱なまま承認するのは避け、3者合意に至らないため却下。 cursor=変更はaiEarlyResumeMinConfidence 0.85→0.80とaiStopMinConfidence 0.60→0.65のみで幅は小さいが、根拠のepisodes 41/47/50・38/45の実データやposition/energyがなく効果検証できない。両者とも再開しやすく止めにくくする方向で、ライブ資金下では根拠不足のため保留が妥当。
+- team=M type=params decision=rejected rationale=drop1h/drop2hのpause閾値をわずかに緩和(-0.03→-0.035, -0.04→-0.045)する提案だが、根拠がepisode46のstop_false1件のみで、position/energy/metricsPlain等の裏付け数値が無い。Mは実資金稼働中であり、急落検知の閾値を1件の事例だけで緩めるのはリスクに比して根拠が薄い。3者合意に至らないため却下。 cursor=変更は1h/2hの一時停止閾値を-3.0%→-3.5%、-4.0%→-4.5%へ広げるのみで、誤停止低減という方向自体は妥当。ただし根拠がEpisode46のstop_false一件に限られ、position/energy等の現況数値もなく、他閾値や再開条件への波及も検証不足のため承認確信は持てない。
+- 判断前にHANDOFF.mdでP(params)の直近履歴(2026-09-29・2026-10-04に同一のaiEarlyResumeMinConfidence緩和が定量根拠不足で2回連続却下済み)を確認済み。M(params)はHANDOFF記録上初出のため同チーム・同種別の履歴は無いが、根拠がepisode1件のみで実資金稼働中のため安全側に倒した。pendingは本件2件のみ。コード変更なし
+
 ### 2026-10-04 00:32 JST — Claude Code（定期AI協議）
 - team=P type=params decision=rejected rationale=変更内容はaiEarlyResumeMinConfidence0.85→0.80のみで幅は小さいが、resume_late遅延の件数・実confidence分布・緩和した場合の損益比較等の定量根拠がrationaleに無い。全く同一の変更(0.85→0.80、resume_late対応という同じ理由文)は2026-09-29 00:34にも定量根拠不足を理由に却下済みで、今回もその根拠不足が解消されていないため前例と整合させ却下。Cursorもneutral(同じ根拠不足を指摘、承認根拠無し)で3者合意に至らない。 cursor=変更はaiEarlyResumeMinConfidenceを0.85→0.80のみで幅は小さいが、resume_late遅延の実測・現在の停止状態・position/energy等の根拠がなく、早期再開閾値緩和の是非を確信できないため保留。
 - 判断前にHANDOFF.mdでP(params)の直近履歴を確認済み。2026-09-29 00:34に全く同一の変更(aiEarlyResumeMinConfidence0.85→0.80)が定量根拠不足を理由に却下されていたことを確認し、今回も根拠が増えていないため同じ結論とした。pendingは本件1件のみ。コード変更なし
