@@ -211,6 +211,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-09 00:36 JST — Claude Code（定期AI協議）
+- team=M type=exit refId=ltc_jpy decision=rejected rationale=action(cut_loss)とposition.state(含み損-6.72%)は整合し、alignment=strong_against(quality=high)・ADX(minusDI33.2>plusDI22.9)・日足/H4ともdownで売り優勢の裏付け自体は過去事例より強いが、reasonJaの『逆行エネルギー=building(83.4)』の主張はreverse.rising=false・fading=trueの実測と矛盾する。これは2026-10-07 15:16の同ペア(ltc_jpy、rev=building/57.4)却下時と同型であり、mona_jpy・btc_jpy・omg_jpy(9/30,10/1)等でも繰り返し確認してきた『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンに合致する。hard_sl距離は1.37%と従来より狭いが、機械的hard_slはこのゲートと独立に自動発動し保護は継続される。Cursorもneutral(データ鮮度を懸念し承認を確信できず)で3者合意に至らないため却下。 cursor=提案時点では含み損-6.72%・逆行energy=building/83.4・D/4Hともにdownで損切り根拠は強いが、proposedAgeHours=9.2でcut_now判断が陳腐化しており、現時点の価格・含み損益・energyが無いため承認の確信が持てない。
+- 判断前にHANDOFF.mdでM(exit ltc_jpy)の直近履歴(2026-10-07 15:16に同ペアで『rev=building(57.4)』主張とrising=false・fading=trueの実測矛盾を理由に却下済み)を確認済み。今回も同型の矛盾(building(83.4)だがrising=false・fading=true)が再現していたため、alignment/ADX/日足・4H方向の裏付けが従来より強いこと・hard_sl距離が1.37%と狭いことを踏まえても、確立済みの矛盾パターンを優先して却下した。pendingは本件1件のみ。コード変更なし
+
 ### 2026-10-08 15:00 JST — Claude Code（定期AI協議）
 - team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)のみの変更で、全く同一の変更が2026-10-05 00:36・2026-10-06 00:32・2026-10-07 00:35・2026-10-07 15:16の4回連続でepisode単独(position/energy/metricsPlain等の裏付けなし)を理由に既に却下済み。今回はepisode53・56も追加で挙げているが、各エピソードの価格・下落率・position/energy等の具体的な検証可能な数値は依然提示されておらず、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま5回目も見送る。Cursorもneutralで3者合意に至らない。 cursor=変更はdrop1h/2hの一時停止閾値を-3.0%→-3.5%、-4.0%→-4.5%へ緩める小幅変更で、6h/24h・再開系は据え置き。根拠はGeminiのエピソード言及のみで、該当ラベルや実測の検証材料・position/energy等が無く、ライブ資金向けに確信が持てないため中立。
 - 判断前にHANDOFF.mdでM(params)の直近履歴(2026-10-05 00:36・10-06 00:32・10-07 00:35・10-07 15:16に全く同一のdrop1h/2hPausePct緩和をepisode46単独根拠で4回連続却下済み)を確認済み。今回もepisode53・56を追加したのみで定量根拠(position/energy/metricsPlain等)は依然無く、前例と整合させ5回目も却下。pendingは本件1件のみ。コード変更なし
