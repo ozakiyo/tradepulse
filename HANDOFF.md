@@ -234,6 +234,12 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-12 15:06 JST — Claude Code（定期AI協議）
+- team=M type=exit refId=mona_jpy decision=rejected rationale=reasonJaは「売り優勢に転じた」とするが、energy.reverse.intensity=buildingでありながらrising=false・fading=trueで矛盾しており、2026-10-06/10-07(×2)/10-11/10-12 00:33と同ペアで5回連続確認済みの『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンと同型。含み益も+0.11%(73.4円)とノイズ水準で急ぐ必然性が薄く、hard_sl距離8.1%で保護されたまま保持継続可能。3者合意に至らず却下。 cursor=提案時点では含み益+0.11%かつalignment=strong_against、逆行building(80.1・cut_now)、日足/H4=down、minusDI優勢で利確の根拠は一貫するが、提案から8.5時間経過しており現在の価格・含み益・energyが無いため確証できない。
+- team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更で、2026-10-05から10-11まで全く同一の変更がepisode46/53/56/60の言及のみを根拠に7回連続で却下されてきている。今回もepisode46/53/60を挙げるのみでposition/energy/metricsPlain等の定量的裏付けは依然無く、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま8回目も見送る。3者合意に至らず却下。 cursor=drop1h/drop2hの停止閾値をわずかに深くするだけで方向性は理にかなうが、根拠のEpisodes 46/53/60は提案内要約のみで検証できず、position/energy/metricsPlainも無い。承認・否認の確信は持てない。
+- team=V type=resume decision=approved rationale=2026-10-12 11:30のHANDOFF更新で、Vのresume却下を続けてきた根本理由(team固有ドキュメントとMETA実態の矛盾・cursor未対応)は解消済みと確認(資料が古かっただけでVはDRY_RUNデモとして正しく稼働中、cursor-opinion.mjsにも10/12にV追加済み)と判明したため、今回は通常どおりmetricsで判断。metricsPlain検算: 学習窓4/8/24/96hの変化率(-0.21%/-0.48%/+0.54%/+0.29%)はpause閾値から十分な余裕、resumeゲート(約24h +0.54%≧-3%)も満たす。hardFloorHit=false、price_above_sma20=true、slope非負。クールダウンは現在基準で完了(停止から84.5h経過)。confidence0.85はaiResumeMinConfidence0.55を十分上回る。デモ運用でダウンサイドも限定的。3者合意のため承認。 cursor=クールダウンはderived上で完了済み。resume24hゲートはapprox_24h+0.54%で下限-3%を大きく上回る。SMA20上・傾き非負・hardFloor未達。confidence0.85はaiResumeMinConfidence0.55を満たす。
+- 判断前にHANDOFF.mdでM(exit mona_jpy)の直近履歴(5回連続・building/fading矛盾)、M(params)の直近履歴(7回連続・根拠不足)、V(resume)の直近履歴(11:30更新でドキュメント矛盾が解消済みと確認)を確認済み。pendingは本件3件のみ。コード変更なし。`meta-record.sh`は3件とも「Googleドライブのページが見つかりません」の既知の表示問題を返したが、再取得したdumpで3件とも正しく記録(approved/rejected)されていることを確認済み(実害なし)。
+
 ### 2026-10-12 11:30 JST — Claude Code（Team-V の現状：META AI協議向けの説明）
 - **Team-V は「GMOコイン法人口座用」のデモ（DRY_RUN）チーム**。法人口座は審査中で未開設、取引所のAPIキーは空のまま（実注文なし）。損益は模擬の記録
 - **META には 2026-10-02 に登録済み**（META_TEAMS 末尾、デモ表示）。急落STOP→解除の流れはデモとして正しく稼働している（資料が古かったのは Claude Code が 9/27 以降 HANDOFF を GitHub に反映していなかったため。今回まとめて反映）
