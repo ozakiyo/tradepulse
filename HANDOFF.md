@@ -4,15 +4,37 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-09-28 15:06 JST / **Claude Code** |
+| 最終更新 | 2026-10-09 08:45 JST / **Claude Code**（M 決済判断のAI呼び出し削減、P/V 1段の余裕、S 境目の出し入れ修正） |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
-| 本番 | K・M・P（実資金） |
-| デモ | L・N・O・Q・R・**S(ルーメウェイ準備中)**・**T(EURUSD・方針のみ/コード未)** |
+| 本番 | **M・P・S**（実資金）。**Kは削除済み**。**主力はS** |
+| デモ | L・T・**V(GMO法人・DRY_RUN、口座開設待ち、META登録済み)**・**W(bitbank暗号資産ML・紙運用、10/4新設)** |
+
+## Claude Code へ引き継ぎ（2026-09-29更新）
+
+### いまの方針
+- **主力は S（bitFlyer Rumeway）本番稼働中**（2026-09-29 21:34 JST 切替済）。P は当面並行
+- M は bitbank 継続
+
+### すでに済んでいること
+- S: 入金 JPY available=366000 確認 → META `resetTeamHistory`（pnl17/ai3/consult2）→ `DRY_RUN=false`・`team-rumeway-live.sqlite` で起動
+- 初回tickで実買い注文5本（stop1+limit4）、locked≈75000、JPY free≈306186
+- デモDB `team-rumeway-dryrun.sqlite` は残置（本番とは分離）
+
+### 次（様子見）
+1. 約定・TP・急落STOPの初動監視
+2. META日次（翌朝）が S=本番・損益0起点になっているか確認
+3. P資金のS移管タイミングはユーザー別指示
+
+### やってはいけないこと
+- live DB に dryrun を上書きしない（`push-conoha` は `data/` 除外・`SYNC_SQLITE=1` 注意）
+- 秘密を HANDOFF に書かない
+
+---
 
 ## 使い方（両ツール共通）
 
 ### セッション開始
-1. **このファイル**を読む
+1. **このファイル**を読む（上の「Claude Code へ引き継ぎ」があれば最優先）
 2. 作業対象チームがあれば `*/HANDOFF.md` も読む（下表）
 3. 「未解決」「次にやること」以外を勝手に広げない
 
@@ -32,13 +54,14 @@
 | コード | フォルダ | HANDOFF |
 |---|---|---|
 | META | `bitbank-gas-meta/` | [HANDOFF.md](bitbank-gas-meta/HANDOFF.md) |
-| K | `bitbank-team-k/` | [HANDOFF.md](bitbank-team-k/HANDOFF.md) |
+| K | ~~`bitbank-team-k/`~~ | **2026-09-28 削除済み**（VPS/Mac。控え `/root/deleted-team-k-backup-20260928-194552.tar.gz`） |
 | M | `bitbank-team-m/` | [HANDOFF.md](bitbank-team-m/HANDOFF.md) |
 | L | `saxo-team-l/` | [HANDOFF.md](saxo-team-l/HANDOFF.md) |
 | N | `saxo-team-n/` | [HANDOFF.md](saxo-team-n/HANDOFF.md) |
 | O | `saxo-team-o/` | [HANDOFF.md](saxo-team-o/HANDOFF.md) |
 | P | `gmo-team-p/` | [HANDOFF.md](gmo-team-p/HANDOFF.md) |
-| S | `bitflyer-team-rumeway/` | [HANDOFF.md](bitflyer-team-rumeway/HANDOFF.md)（ルーメウェイ＝P戦略のbitFlyer版） |
+| S | `bitflyer-team-rumeway/` | [HANDOFF.md](bitflyer-team-rumeway/HANDOFF.md)（ルーメウェイ＝P戦略のbitFlyer版・**今後の主力**） |
+| V | `gmo-team-v/` | [HANDOFF.md](gmo-team-v/HANDOFF.md)（Victory＝P戦略のGMOコイン**法人**口座版） |
 | Q | `saxo-team-q/` | [HANDOFF.md](saxo-team-q/HANDOFF.md) |
 | R | `saxo-team-r/` | [HANDOFF.md](saxo-team-r/HANDOFF.md) |
 | T | `saxo-team-t/` | [HANDOFF.md](saxo-team-t/HANDOFF.md)（EURUSD・局面補助/確率本体/RL研究、2026-09-16 10:37 JSTデプロイ・稼働中） |
@@ -189,7 +212,7 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ## 次にやること
 
 0. **【9/26】META シートの残骸を手動削除（ユーザー）**: `META_損益` の日次ログに `M-Fryer` の1行（2026-09-25・0円）。`META_チーム概要`／`META_損益` のサマリー最下行に `M-Fryer` 行があれば同じく削除（dump は META_TEAMS 基準のため表示されず未確認）
-1. **ユーザー**: bitFlyer 開設完了の連絡待ち → その後 S の API Key 設定・疎通・紙確認 → `DRY_RUN=false`（本番化）。**方針確定（9/26）: Team-M は bitbank 継続、Team-S は bitFlyer 口座開設次第本番化**
+1. **【完了 9/29】bitFlyer(S) 本番稼働**: 入金366000確認→META reset→`DRY_RUN=false`・live DB。初回で実買い5本。次=約定/TP/急落の初動監視。P→S資金移管は別指示。**Team-Mはbitbank継続**
 2. （任意）K の 50009 対策
 3. P 資金を Rumeway へ移すタイミングは別途指示
 4. K 停止時: S の `GEMINI_API_KEY` を K 由来へ切替
@@ -210,6 +233,13 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ---
 
 ## セッションログ（新しい行を上に追記）
+
+### 2026-10-12 11:30 JST — Claude Code（Team-V の現状：META AI協議向けの説明）
+- **Team-V は「GMOコイン法人口座用」のデモ（DRY_RUN）チーム**。法人口座は審査中で未開設、取引所のAPIキーは空のまま（実注文なし）。損益は模擬の記録
+- **META には 2026-10-02 に登録済み**（META_TEAMS 末尾、デモ表示）。急落STOP→解除の流れはデモとして正しく稼働している（資料が古かったのは Claude Code が 9/27 以降 HANDOFF を GitHub に反映していなかったため。今回まとめて反映）
+- Gemini は **2026-10-09 から V 専用キー**（S との共用をやめた）。`meta-consult/cursor-opinion.mjs` に V を追加（2026-10-12）
+- 10/9 02:39 からの V の crash_pause は AI の単発判断（同じ相場で P は停止せず）。解除の可否は metrics と閾値で通常どおり判断してよい（デモなので資料の不整合を理由に却下し続ける必要はない）
+- 同様に **Team-W**（bitbank 暗号資産ML・紙運用、10/4 新設）も META に登録済みのデモ。AI協議の対象（exit/resume/params の提案）は出さない
 
 ### 2026-10-12 00:33 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=mona_jpy decision=rejected rationale=提案から約8.6時間経過したデータで現在の建玉状況を保証しない。energy内部もintensity=buildingとしながらfading=true/rising=falseで矛盾があり、hard_slまで6.5%の余裕もある。情報不足のため今回は却下し、hard_slで保護されたまま保持を継続する。 cursor=提案から約8.6時間経過しており、gemini時点の逆行エネルギー(building/56.6・fading)や含み損-1.56%は現時点の建玉状態を保証しない。ハードSLまで約6.5%余裕もあり、時間経過後の即時損切り承認は根拠不足。現行のprice/energy再確認後に判断すべき。
@@ -239,11 +269,22 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - 【要ユーザー確認・継続】team Vの実態(実資金/DRY_RUN)・META登録完了時期・cursor-opinion側へのVチーム追加設定の要否が前回(10/9 15:04)から未回答のまま。ご確認いただけるまで、Vのresume提案は同じ理由で却下を継続する方針です。
 - 判断前にHANDOFF.mdでV(resume)の直近履歴(10/9 15:04の初回却下、初出現・ドキュメント矛盾・cursor未設定が理由)を確認済み。cursor-opinion.shを再実行しても状況不変(unknown team: V)だったため、同根拠で却下を継続した。pendingはこの1件のみ。コード変更なし
 
+### 2026-10-09 21:45 JST — Claude Code
+- M の決済判断のAI省略が有効: 12時間でクォータ超過0回（以前36hで171回）、省略36回／AI判断13回
+- **S の AI 急落判断がほぼ失敗していた**（12h: 詳細 35/36 失敗、簡易 36/143 失敗）。原因＝V が S と同じ Gemini キーを共有し、急落STOP中の V の解除判断が5分ごとに枠を消費。**V の GEMINI_API_KEY を空にして反映**（V は gemini=off、急落STOP中のまま＝デモなので実害なし）。S のルール判定（学習閾値・hard_floor）はその間も有効だった。V 本番化時は別プロジェクトのキーを用意
+- 10/9 確定: P +1,151 / S +382 / M −7,729（LTC・BTC 損切り）。W 本物の取引5件で −88円
+
 ### 2026-10-09 15:04 JST — Claude Code（定期AI協議）
 - team=M type=params decision=rejected rationale=learnedBarHours 4→1はKの過去の同種変更(4→8、3週連続却下)と同様に急落判定の時間窓を構造的に変える大きな変更だが、根拠はepisode46/53への言及のみでposition/energy/metricsPlain等の定量的裏付けが無い。drop1h/2hPausePctのみの緩和(同じepisode46根拠)は2026-10-05〜10-09に6回連続で根拠不足を理由に却下済みであり、今回はさらに大きな構造変更にlearnedBarHoursを含めているにもかかわらず新たな定量根拠は追加されていない。Mは実資金稼働中であり、根拠不足のまま承認するのは避ける。Cursorもneutral(位置・エネルギー等の根拠不足、ライブ資金のリスクを懸念)で3者合意に至らないため却下。 cursor=learnedBarHoursを4→1に変えると急落検知は速くなる一方、足の意味が変わり停止・再開が増えやすくライブ資金のリスクが大きい。Geminiのエピソード46/53根拠はここでは検証できず、position・energy・現時点の下落指標も提案に無い。閾値を僅かに厳しくする補正は妥当だが、根拠がパラメータ差分と説明のみのため承認・否認の確信は持てない。
 - team=V type=resume decision=rejected rationale=metricsPlain検算自体は矛盾なし(学習窓4/8/24/96hの変化率0.04%/0.69%/-1.97%/-5.32%はpause閾値-3/-4/-5/-8%から十分な余裕、resumeゲート-1.97%≧-3%も満たす、hardFloorHit=false、クールダウンも現在基準で完了)。だがteam Vはこれまで一度もMETA協議履歴に出現しておらず(HANDOFF.md全セッションログに記載なし)、かつteam固有のgmo-team-v/HANDOFF.md(2026-10-01更新)には『法人GMO口座未開設・APIキー空のDRY_RUN専用、META未登録(登録はgo-live手順のステップ3で未実施)』と明記されている。しかし実際のdumpではVの月間損益+3,425.5円・日次pnlLogが10/1以降継続記録され、crash_pause→resume提案という稼働中チームと同じフローが発生しており、ドキュメントとMETA側の実態が矛盾している。さらにcursor-opinion.shはVを設定上認識しておらず(\"unknown team: V\")、オートくん側の設定更新も未完了と見られる。資金が実際に動いているのか(法人口座開設済みでMETA登録が追いついただけか)、単なるDRY_RUNのペーパー損益記録なのかを現時点の情報だけでは判別できず、初回の判断でもあるため安全側に倒して却下する。次回までに必要な情報: Vが実資金稼働かDRY_RUNか、META登録がいつ完了したか、cursor-opinion側の設定にVを追加する必要があるか。 cursor=unknown team: V
 - 【要ユーザー確認】team V(gmo-team-v)がMETA協議に初出現。team固有HANDOFF(10/1更新)は「DRY_RUN・API未設定・META未登録」と記載しているが、実際のMETA dumpではVの損益記録とcrash_pause/resume提案が稼働中で、cursor-opinion.shもVを未設定(\"unknown team\")。ドキュメントと実態の矛盾のため、上記の通りresumeは却下した。Vの現在の実態(実資金か否か)とcursor-opinion側の設定更新の要否をご確認ください。
 - 判断前にHANDOFF.mdでM(params)の直近履行(10/5〜10/9にdrop1h/2hPausePct緩和を6回連続で根拠不足のため却下済み)を確認済み。Vはteam固有HANDOFFも確認し、META協議初出現かつドキュメント矛盾を理由に却下。pendingはこの2件のみ。コード変更なし
+
+### 2026-10-09 08:45 JST — Claude Code
+- 10/6〜10/9 で BTC 約−4.6%（1,355万→1,293万）。P 保有18本・含み損 約−1.5万円（1年記録の最大値更新）、使用61万/第1セット約77.5万。S 照合一致・含み損 約−7千円
+- P の急落STOPが働かなかった件: ルール閾値に未達（4h −1%、8h −2.8%、24h −3.4%）、AI は P 15回すべて継続・V は1回だけ停止＝境目でのAIの揺れ。**ユーザー判断: そのまま（1）**
+- M: 本番サイズ3件すべて損失（OMG −825、LTC ハードSL −5,407、BTC AI損切り −2,322）、複利で予算 189,881。Gemini 429 は途中の切替で 最終失敗は約740回中6回。呼び出しの約2/3（476回/日）が決済判断 → **前回「保有継続」から変化が小さければ（価格<1%・勢いの向き同じ・強さ差<15・逆行strongでない・60分以内）AIを省略**（`worker.js` `exitReuseDecision`）。キー4/5 にも対応（`.env` の `GEMINI_API_KEY_4` は空欄のまま。3キーが同じプロジェクトかはユーザーが確認予定）
+- P/V: `pruneStaleGridOrders` に1段の余裕（10/7）。S: 1段の余裕＋取消直後の注文を reconcile で戻さない（10/7）
 
 ### 2026-10-09 06:06 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=btc_jpy decision=approved rationale=action(cut_loss)とposition.state(含み損-3.8%)は整合。energy.reverse=strong(97.4)でrising=true・fading=falseとreasonJaの『逆行が強く拡大中』の主張が実測と一致し、過去に繰り返し確認した『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンは今回見られない。alignment=strong_against(quality=high)、ADX35.6でminusDI41.7>>plusDI9.7と強い売り優勢。日足・4Hともdownで時間軸の混在もなし。hard_sl距離4.36%に対し現在の含み損3.8%・最大逆行4.07%と迫っており、拡大前に損切りする判断は妥当。Cursorはneutral(データ鮮度のみ懸念、矛盾の指摘なし)のため、矛盾のない実データを優先して承認。 cursor=提案時点の根拠は強い（含み損-3.8%/-2493円、逆行strong/97.4・rising、日足・4Hともdown、ADX35.6で-DI優位）。ただしproposedAgeHours=5.2で現在価格・energyの更新がなく、損切り実行の妥当性を現時点では確信できないため保留。
@@ -285,6 +326,13 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 ### 2026-10-06 15:01 JST — フォールバック判断（Claude Codeヘッドレス不通）
 - team=M type=exit refId=mona_jpy decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 提案から約5時間経過し、判断材料は提案時点の含み損-1.46%・建値付近スクラッチ根拠のみで現在値が不明。逆行はfading表記だがrising=true/fading=falseと矛盾し、日足up・ADX高めで明確な撤退根拠に欠けるため承認も却下も確信が持てない。 (Claude不通、Cursor neutralで安全側却下)
 
+### 2026-10-06 08:25 JST — Claude Code
+- **S（本番）が10/2から停止していた不具合を修正・反映**: 逆指値の状態を `getparentorder` で取っていたが状態項目が無く常に UNKNOWN → 約定6本に利確注文が出ず、新規も止まっていた。注文一覧から判定するよう修正し、取引所の注文とDBの一致を確認。反映直後に4本が利確（本日+805円）。詳細 `bitflyer-team-rumeway/HANDOFF.md`
+- 10/5: **L にスプレッドの保護**（スプレッド>損切り幅×0.25 または 中央値×5 なら建てない）。USDPLN の週明けスプレッド674pipsで −27,306円が出たため
+- 10/5: **週明けの窓埋めを検証** → 仲値では +11.3pips/回だったが、Bid/Ask（Saxo、8通貨・2022-01〜）では週明け始値のスプレッドが中央値18〜87pipsで −12pips/回 → 採用しない（`saxo-team-t/research/README.md`）。平日の窓・急変動の戻り・BTCのCME窓も効果なし
+- 10/5: 借入でPを拡大する相談 → 1年程度様子を見る（最大含み損・使用額を記録していく）
+- W: 予測ログを1時間1回に（DB肥大化防止）
+
 ### 2026-10-06 00:32 JST — Claude Code（定期AI協議）
 - team=P type=params decision=rejected rationale=aiEarlyResumeMinConfidence0.85→0.80のみの変更で、全く同一の変更が2026-09-29・2026-10-04に定量根拠不足(resume_late件数・信頼度分布・損益影響の裏付けなし)を理由に2回連続で既に却下済み。今回のrationaleもepisode番号等の具体的検証可能な数値を提示せず、過去の却下理由が解消されていないため前例と整合させ3回目も却下。Cursorもneutral(同じ根拠不足を指摘)で3者合意に至らない。 cursor=変更はaiEarlyResumeMinConfidenceの0.85→0.80のみで幅は小さいが、resume_late多発の根拠（件数・時期・0.80なら適切に再開できたか）や、閾値緩和による早すぎる再開リスクの検証データが提案内にない。ライブ資金向けのため根拠不足で承認・却下は判断できない。
 - team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)のみの変更で、根拠・数値とも2026-10-05 00:36に却下済みの提案(episode46のstop_false1件のみが根拠、position/energy/metricsPlain等の裏付けなし)とほぼ同一。約15時間での再提案だが根拠は増えておらず、Mは実資金稼働中であり急落検知閾値を1件の事例のみで緩める判断は見送る。Cursorもneutral(同じ根拠不足を指摘)で3者合意に至らない。 cursor=変更幅は1h/2hの一時停止閾値を各0.5ppだけ不利側へ緩める小幅修正で、意図（ノイズによる誤停止抑制）は整合するが、根拠のEpisode 46や当時の価格・足データ、position/energy等が提案に無く真偽を検証できないため承認判断は保留。
@@ -295,6 +343,10 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=M type=params decision=rejected rationale=drop1h/drop2hのpause閾値をわずかに緩和(-0.03→-0.035, -0.04→-0.045)する提案だが、根拠がepisode46のstop_false1件のみで、position/energy/metricsPlain等の裏付け数値が無い。Mは実資金稼働中であり、急落検知の閾値を1件の事例だけで緩めるのはリスクに比して根拠が薄い。3者合意に至らないため却下。 cursor=変更は1h/2hの一時停止閾値を-3.0%→-3.5%、-4.0%→-4.5%へ広げるのみで、誤停止低減という方向自体は妥当。ただし根拠がEpisode46のstop_false一件に限られ、position/energy等の現況数値もなく、他閾値や再開条件への波及も検証不足のため承認確信は持てない。
 - 判断前にHANDOFF.mdでP(params)の直近履歴(2026-09-29・2026-10-04に同一のaiEarlyResumeMinConfidence緩和が定量根拠不足で2回連続却下済み)を確認済み。M(params)はHANDOFF記録上初出のため同チーム・同種別の履歴は無いが、根拠がepisode1件のみで実資金稼働中のため安全側に倒した。pendingは本件2件のみ。コード変更なし
 
+### 2026-10-04 09:30 JST — Claude Code
+- **Team-W 新設**（`bitbank-team-w/`、ユーザー指示）: Team-T の暗号資産版。bitbank 公開API（キー不要）で紙運用、btc/eth/xrp/sol/doge・買いのみ・1回1万円・最大3。教師あり採点係＋k-means局面＋強化学習バンディット（ごほうび＝手数料込み実現bps）。往復手数料（20〜24bps）を超える予測がほぼ出ないため、ユーザー判断で「予測の上位5%で買いシグナル、強化学習に絞らせる」（過去データでは手数料込みで平均マイナス → デモ損益はマイナスになりやすい）
+- VPS: コンテナ `bitbank-team-w`、週次再学習 crontab 土曜 10:30 JST。META に W 追加（@24）。詳細 `bitbank-team-w/HANDOFF.md`
+
 ### 2026-10-04 00:32 JST — Claude Code（定期AI協議）
 - team=P type=params decision=rejected rationale=変更内容はaiEarlyResumeMinConfidence0.85→0.80のみで幅は小さいが、resume_late遅延の件数・実confidence分布・緩和した場合の損益比較等の定量根拠がrationaleに無い。全く同一の変更(0.85→0.80、resume_late対応という同じ理由文)は2026-09-29 00:34にも定量根拠不足を理由に却下済みで、今回もその根拠不足が解消されていないため前例と整合させ却下。Cursorもneutral(同じ根拠不足を指摘、承認根拠無し)で3者合意に至らない。 cursor=変更はaiEarlyResumeMinConfidenceを0.85→0.80のみで幅は小さいが、resume_late遅延の実測・現在の停止状態・position/energy等の根拠がなく、早期再開閾値緩和の是非を確信できないため保留。
 - 判断前にHANDOFF.mdでP(params)の直近履歴を確認済み。2026-09-29 00:34に全く同一の変更(aiEarlyResumeMinConfidence0.85→0.80)が定量根拠不足を理由に却下されていたことを確認し、今回も根拠が増えていないため同じ結論とした。pendingは本件1件のみ。コード変更なし
@@ -304,13 +356,68 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=M type=resume decision=approved rationale=metricsPlain検算: 学習窓4/8/24/96hの変化率(+0.23%/-0.8%/-0.29%/+1.72%)はいずれもpause閾値(-3/-4/-5/-8%)から十分な余裕があり、resumeゲート(約24h -0.29%≧-3%)も満たす。SMA20上・スロープ非負・hard_floor未達でreasonと矛盾なし。クールダウン(6h)は現在基準で完了(経過10.7h、cooldownFinishedNow=true)しており通常再開基準(0.55)が適用対象、confidence0.9は十分上回る(提案時点のearly_ai閾値0.85も満たしており矛盾なし)。Mのresume協議はHANDOFF記録上今回が初出で、過去の短時間再停止パターンは確認されない。Gemini・Cursor(neutral、データ鮮度のみ懸念で矛盾の指摘なし)を踏まえゲート充足を優先し承認 cursor=時間条件は満たす（paused約10.6h・クールダウン完了）。提案時点のmetricsPlainでも急落閾値未達・resumeゲート（約24h -0.29%≥-3%）・SMA20上と再開根拠は揃う。ただし提案から約8.9h経過し価格・下落率は提案時点のままなので、現況未確認のままライブ再開を承認する確信は持てない。
 - 判断前にHANDOFF.mdでM(exit eth_jpy)の直近履歴(9/21・9/24・9/26・9/27・9/28・9/30・10/1と繰り返しfading/wait_scratch矛盾で却下)を確認済み、今回も同型のため却下。M(resume)はHANDOFF記録上初出のため同チーム・同種別の「承認→短時間再停止」履歴は無く、metricsPlainの検算に矛盾が無いことを優先して承認。pendingは本件2件のみ。コード変更なし
 
+### 2026-10-03 10:30 JST — Claude Code
+- 朝の確認: 10/2確定 P +1,666 / S +35 / M −825 → 本番計 +876。L −17,579（10,000通貨のハードSL重なり、EURCHF −7,717 は修正前に建った二重建て玉）/ V +1,104 / T +643。P・V は GMO メンテで一時停止（ボットは正常）
+- M: 04:26 JST から AI急落STOP（8h −2.45%・6h −2.51%、閾値の約6割で裏付けあり）。新規買い停止中
+- **M: 旧テスト数量 0.0001 の ETH(id=17)・XLM(id=22) を成行売り**（ユーザー承認、自動チェックで私の発注は拒否 → ユーザーが `bitbank-team-m/scripts/oneoff-close-dust-20261003.mjs` を実行）。注文ID 61071394596/61071394649、損益 +3.56円/+0.0005円。口座 ETH/XLM 0、BTC 0.0049 のみ保有。枠が2つ空いた（急落STOP解除後に新規買い可）
+- **M: 決済協議の却下後の「判断が変わった」判定に勢いの向きを追加・本番反映**（`src/worker.js` の `exitSignature_` を action:path → action:path:向き(with/neutral/against)）。中立で却下→売り優勢に転じても同じ take_profit だと24h待ちだったのが6hで再提案になる。worker.js のみ scp＋compose build（.env は触らず。ローカルと VPS の .env は DATA_DIR/DB_PATH だけ違う → push-conoha は VPS の値を上書きするので注意）。VPS に `worker.js.bak-20261003`。なお「XLM が5分ごとに協議・却下」は誤りで、却下は1回、その結果をチェックのたびにログ再表示していただけ
+- **P・S に複利サイジングを導入・本番反映**（1段の金額と予算上限を (元本＋10/3以降の確定損益)÷元本 倍。起点 10/3 0:00 JST）。V は本番稼働時に入れる（ユーザー決定、V HANDOFF の手順7）。S は起動直後に倍率1.0000を確認、P は GMO メンテ明けにログ確認
+- **P の複利を「セット方式」（75万円×最大4セット、セットごとに複利）に変更・本番反映**（12:05 JST、DB に set_no 列追加、反映前バックアップあり）。S は単一方式のまま（GMO移行予定）、V は本番化時に別途。詳細 `gmo-team-p/HANDOFF.md`
+- P の複利の起点を稼働開始日 8/26 に変更（今までの利益 +22,785円を含める、第1セット1段 27,000→27,820円）
+- **T: 教師なし（k-means局面）＋強化学習（文脈付きバンディット、ごほうび＝スプレッド込み実現pips、決済ごとに学習、見送りは記録上だけ建てて学習、探索10%）を判断に組み込み・Bid/Ask約定に変更**（デモ・VPS反映済み、実エントリーは月曜以降に確認）。詳細 `saxo-team-t/HANDOFF.md`
+- ⚠ 10/3 の確認作業で、私のツール出力に P/S の `.env` の SMTP_PASS（Gmail アプリパスワード）が表示された（チャット本文には書いていない）。ユーザーにパスワード再発行を推奨済み
+- T: 初の自動再学習（10:00 JST cron）正常、全通貨入れ替えなし（EURUSD は候補+19.9 vs 現行+15.3pips で改善幅不足）
+
+### 2026-10-02 23:55 JST — Claude Code
+- L: 売り玉保有中の急騰は、急騰判定よりハードSL 40pips が先に当たる（買い転換の実績0件）。ユーザー判断で現状維持
+- **T: 採点係の週次自動再学習を作成・VPS稼働**（土曜 10:00 JST cron、検証期間でコスト差引後に現行を上回った通貨だけ入れ替え）。初回は入れ替えなし。詳細 `saxo-team-t/HANDOFF.md`。T の `push-conoha.sh` の META 補完元を N→L に修正
+- VPS の cron は **JST**（`date -u` で UTC 表示されるが crontab は JST で解釈）
+
+### 2026-10-02 22:15 JST — Claude Code
+- 夜の確認: 全コンテナ稼働・再起動0。本日確定 P +1,575 / S +35 / M −825（OMG AI損切り）→ 本番計 約+785。デモ L −5,642（10,000通貨、GBPCHF ハードSL −8,346 ほか）/ V +1,104 / T 0。Gemini クォータ超過は12時間0件
+- **Team-L: AI急落STOPが売り玉を決済→同じ売りで建て直していた不具合を修正・反映**（過去46件）。詳細は `saxo-team-l/HANDOFF.md`
+
 ### 2026-10-02 15:03 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=xlm_jpy decision=rejected rationale=action(take_profit)とreasonJaは『全体の勢いが売り優勢(逆行方向)に転じた』とするが、実データはalignment=neutral(against/strong_againstでない)・reverse.intensity=fading・hint=wait_scratch(様子見シグナルで積極決済の根拠にならない)で、ADXはplusDI19.3>minusDI16.4とむしろ買い優勢であり売り優勢転化の主張と矛盾する。日足up/H4downと時間軸も割れている。含み益+18.35%はhard_sl(距離22.27%)で保護されたまま保持継続可能で急ぐ必然性は薄い。9/24・9/28の同ペア却下時や9/21〜9/30のeth_jpyで繰り返し確認してきた『reasonJaの反転主張とenergy実測の食い違い』パターンと同型のため今回も整合させ却下。3者合意に至らず却下 cursor=提案時点では含み益+18.35%だが、energyはalignment=neutral・逆行fading(13.2)・hint=wait_scratch・ADX20.6で弱い。日足up/+DI>-DIもあり、利確根拠の「売り優勢転化」と整合しにくい。加えて提案から約4.8時間経過し現状価格・勢いが不明なため、承認判断は保留が妥当。
 - 判断前にHANDOFF.mdでxlm_jpyの履歴(9/24 15:16・9/28 15:06の2回とも『reasonJa/energyの反転主張とrising/fading実測の食い違い』で却下)を確認済み。今回もalignment=neutral・fading/wait_scratchとADXの買い優勢が利確根拠と矛盾する同型パターンのため却下。Cursorもneutral(同じ矛盾を指摘)。pendingは本件1件のみ。コード変更なし
 
+### 2026-10-02 08:25 JST — Claude Code
+- 朝の確認: 全コンテナ稼働・再起動0。10/1 確定損益 P +786 / S +29 / M 0 / L −1,148（デモ、ハードSL 3件）/ T 0。L の Gemini クォータエラーは12時間で0件、M はクォータ超過14件・503 14件（AI判断の失敗ログはなし）
+- **P の急落STOP（学習閾値）が働いていなかった不具合を発見・修正**: GMO の 4時間足を日付指定で取得していて常に0本 → 下落率が常に0。`gmo-team-p`・`gmo-team-v` の `src/gmocoin/klines.js` を年指定に修正。**V・P とも反映済み**（P はユーザーが 08:27 JST に push-conoha 実行、d2h=0.97% 等の実値を確認）。詳細は `gmo-team-p/HANDOFF.md`
+- **V を META に登録**: META_TEAMS 末尾に V、deploy @23。V の `.env` に META_* を設定して反映。dump で V（デモ、10/1 pnl 509）を確認
+
 ### 2026-10-02 06:06 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=omg_jpy decision=approved rationale=action(cut_loss)とposition.state(含み損-2.94%)は整合。energy.reverse=strong(53.3)でrising=true・fading=falseと、過去2回(9/30 15:08・10/1 00:36)のomg_jpy却下時に見られた「building/cut_nowの主張とrising=false・fading=trueの実測矛盾」パターンが今回は見られず、reasonJaの主張と実データが一致している。alignment=strong_against(quality=high)、ADX26.2でminusDI28.6>plusDI17.9と売り優勢も裏付けられる。dailyDir=up/h4Dir=downの時間軸混在はあるが、9/28 btc_jpy承認時と同様h4の失速として整合的。含み損は初回提案時(-0.26%)から継続的に拡大しており(前回-3.06%→今回-2.94%)、hard_sl余裕5.21%はあるがさらなる拡大を避ける判断は妥当。confidence0.95。 cursor=提案時点では含み損-2.94%、逆行エネルギーstrong(53.3)・rising・cut_now・ADXで売り優勢と損切り根拠は揃う。ただしderived上は提案から5.4時間経過し現時点の更新がなく確信は持てない(neutral)。
 - 判断前にHANDOFF.mdでomg_jpyの履歴(9/30 15:08・10/1 00:36の2回とも却下、いずれも「building/cut_now主張とrising=false・fading=trueの実測矛盾」が理由)を確認済み。今回はrising=true・fading=falseで矛盾が解消しており、過去の却下パターンがそのまま当てはまらないことを確認した上で承認。Cursorはneutral(データ鮮度のみを懸念、矛盾の指摘なし)。pendingは本件1件のみ。コード変更なし
+
+### 2026-10-01 23:10 JST — Claude Code
+- **Team-L 必要資金の日次記録**: Bot（ConoHa反映済み）が毎日、必要資金の目安を2行（実測／参考10,000通貨換算）計算し、スプレッドシートの新シート `L_必要資金推移` へ送る。初日の値: 実測 0件（切替直後）、参考 証拠金ピーク約15.9万・最大DD約3.3万 → **目安約35.1万円**
+- L の GAS: `saxo-team-l/gas/.clasp.json` を作成 → `clasp push` → 稼働中のデプロイを `clasp deploy -i` で更新（@7）→ 同期で capitalEstimateCount=2 を確認。GASのファイル名が "Sheets"/"WebApp" に変わった（中身は同じ）
+- 次: 2〜4週間後に実測の行（スプレッド込み）を見て必要資金を判断。明日午後、L の Gemini クォータエラーが3キーで減ったか確認
+
+### 2026-10-01 21:50 JST — Claude Code
+- **22:35 JST追記**: ユーザー指示で L は現状（最大2ペア・10,000通貨・DRY_RUN）のまま検証継続。1ペア化の必要資金は約19〜20万円と推測（証拠金ピーク約8.4万÷50%＋DD 1.6〜3.3万、DDは再現不可のため推測）。**次**: 2〜4週間後に `SINCE=2026-10-01T13:21:00Z` で capital-estimate を実行し、スプレッド込みの成績と必要資金を確認
+- **22:25 JST追記（L 10,000通貨デモ）**: ユーザー指示で L のデモ数量を `LOT_UNITS=10000` に変更（VPS/ローカル`.env`、バックアップあり、DRY_RUN=true維持）。保有中の AUDUSD・USDPLN は1000通貨のまま、以後の新規から10,000通貨。utilはSaxo実口座の証拠金率（主に手動USDJPY売り）でデモ数量の影響を受けない
+- 新規 `saxo-team-l/scripts/capital-estimate.mjs`（DB読み取りのみ）: 同時保有の証拠金ピーク（25倍想定）・確定損益の最大DD・最大損失から必要資金の目安を算出。過去203件を10,000通貨換算 → 証拠金ピーク約15.9万円、最大DD約3.3万円、**目安約35万円**（スプレッド未計上のため実際はより大きい）。今後の実測は `docker exec -e SINCE=2026-10-01T13:21:00Z saxo-team-l node scripts/capital-estimate.mjs`
+- **22:10 JST追記（L 成績の検証と修正）**: 決済済み201件(8/13〜10/1) 合計+2,096円・勝率約50%。内訳: AI決済14件+5,655、停止解除前の手仕舞い81件+2,711、急落/急騰反対56件+2,272、ハードSL48件−8,465。一覧CSVを `~/Downloads/TeamL_取引一覧_20261001.csv` に出力。**デモの約定が仲値(Mid)でスプレッド未計上**（`worker.js`の`last = q.Mid ?? …`）と判明。現在のSaxoスプレッドで試算すると201件で約2,600円 → 差し引き約−500円（推測、指標時・早朝はさらに不利）
+- **Team-L: 約定価格を実際の側に修正・ConoHa反映済み**（`saxo-team-l/src/worker.js`）。建玉は買い=Ask/売り=Bid、決済は決済注文の側（ロング決済=Bid、ショート決済=Ask）。シグナル判定は従来どおり仲値。反映直後のUSDPLN買いが建値3.87589（仲値3.87559＝Ask側）で記録されたことを確認。過去201件は再計算していない（今後のデモ成績は実態に近づき、以前より悪く見えるのが正常）
+- **22:00 JST追記**: ユーザーが別アカウントで新しいGeminiキー2本を発行 → 全チームと重複なしを確認 → VPSの`saxo-team-l/.env`に`GEMINI_API_KEY_2/_3`の2行のみ追記（バックアップ`.env.bak-*`、Saxo認証の行は保持）→ 再作成。3本とも疎通HTTP 200、L正常tick・再起動0。明日の昼に枠超過が減ったか確認
+- 夜の確認: 全6チーム稼働・再起動0。P/V(同一IPのGMO API)・S/V(共有Geminiキー)とも制限エラー0。L は 12:00〜16:00 JST に Gemini 枠超過347件（10:21に停止解除→AI呼び出し再開で日次枠を消費、16:00=米太平洋0時のリセット後は0件と推定）。その間の決済判断27回は「保有継続」で代用（建玉は順方向・逆行弱で実害ほぼなし、デモ）
+- **Team-L: Gemini 複数キー対応を実装・ConoHa反映済み**（`saxo-team-l/src/config.js`・`src/ai/providers/index.js`、Team-Mと同方式。scp＋`docker compose up -d --build`、md5一致）。キーは現在1本のまま
+- ユーザーが N・O の旧キーを L の `GEMINI_API_KEY_2/_3` に入力 → 照合で **N=Mの`GEMINI_API_KEY_3`、O=Sのメイン（＝Vも共用）と重複**。本番M/Sの枠を食うため不採用、ローカル`.env`の2行は値を空にした（VPSの.envには未追加）
+- **次**: ユーザーが新しいGeminiキーを2本発行（L用）→ ローカル`saxo-team-l/.env`の`GEMINI_API_KEY_2/_3`に記入 → 全チームと重複照合 → VPSの`.env`に2行だけ追記（push-conoha.sh不使用）→ 再作成
+
+### 2026-10-01 08:30 JST — Claude Code
+- **Team-V（Victory）を新設・テスト稼働**（ユーザー指示: bitFlyerの手数料が高いので、GMO法人口座の開設次第、Pの戦略を法人で運用。コード名は T が Saxo で使用中のため V）
+- `gmo-team-v/`: gmo-team-p をコピー（秘密・DB除外）、P→V改名、統一パラメータ、法人決算（Sの`corpTax.js`をGMOの円建て手数料対応で移植・単体テストPASS）、3/31最終価格記録
+- `.env`: DRY_RUN=true、GMOキー空（Pの個人キーは使わない）、予算366,000円(仮)、Gemini はSと共用、META・決算シート・メールはテスト中は空
+- ローカル75秒実行とVPS配置（`gmo-team-v`、再起動0、模擬買い5本）で正常動作を確認。Team-Pへの影響なし
+- 本番化の残作業は `gmo-team-v/HANDOFF.md`（キー→META登録→決算シート統合の判断→S停止とBTCの扱い→予算確定→本番）
+
+### 2026-10-01 08:00 JST — Claude Code
+- 朝の確認: M/P/S/L/T Up。9/30確定(META) P +1,278.5・S +117.13・M 0・L +603.2(デモ)。**訂正**: 前夜のS「+171円」は手数料補正(4時間ごとの同期)前の値で、正しくは+117円（8回、1往復あたり純益約12円＝粗利57−手数料45）
+- L のエラー調査: ①Saxo infoprices 500/503/504 が 10/1 00:55〜01:38 JST に AUDJPY/NZDJPY で37件（Saxo側障害とみられる、tickは継続、以後0件）②Gemini枠超過10件（再試行で判断は通過、保留化なし）
+- **Team-L: AI急落停止にSMAバックストップを導入・ConoHa反映済み**（`saxo-team-l/src/ai/stopAdvisor.js`のみ）。直近60回の停止は全てAI判断・ルール停止0、うち52回(87%)は下落率が閾値の40%未満で「smaBelowPause is enabled」等SMA単独が理由。プロンプトにSMA単独不可を明記、AIへ渡すparamsから`smaBelowPause`/`smaTrendMin*`を除外（guard.jsの機械ルールでは従来通り使用）、40%未満のpauseを`sma_backstop`で却下。スタブ単体テストPASS。**デプロイはscp＋`docker compose up -d --build`（VPS専用のSaxo認証設定を守るためpush-conoha.sh不使用）**、md5一致確認。現在のAUDJPY停止(10/1 02:18〜)は通常の再開経路で解除待ち
 
 ### 2026-10-01 06:03 JST — Claude Code（定期AI協議）
 - team=L type=resume decision=rejected rationale=クールダウン未消化(残り約2.3h)の早期再開申請でconfidence0.75は早期閾値0.7をわずかに上回るのみと薄い。drop1h/2h/6hはいずれも+0.02%前後でほぼゼロ、belowSma=true・smaSlopeNeg=trueも継続しており、明確な反発とは言えない。drop24h-0.54%はresumeゲート(-1.5%)自体は満たすが、HANDOFF確認では直近まで5日以上安定していたLが9/30以降は承認後3h・11hで再停止する短周期化が新たに見られ、再現性リスクを懸念。Cursorも今回初めてreject(過去2回は懸念はあるもneutral)であり、3者合意に至らないため安全側で却下。 cursor=クールダウン未了(残り約2.3h)の早期再開。drop24hは閾値内だが、belowSmaかつsmaSlopeNegのまま、1h/2h/6hの「上昇」は0.02%前後で安定化根拠が薄い。再開は時期尚早。
@@ -321,15 +428,45 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=M type=exit refId=omg_jpy decision=rejected rationale=action(cut_loss)とposition.state(含み損-3.06%,-2042.5円)は整合。ただしenergy.reverse.intensity=building・hint=cut_nowとしているが実測はrising=false・fading=trueで逆行エネルギーはむしろ弱まりつつあり、buildingの主張と矛盾する。2026-09-28のxlm_jpy却下時と同型のintensity=building表示とrising/fading実測の食い違いパターン。alignment=strong_against・ADX24(minusDI27.2>plusDI14.7)自体は売り優勢を示すが、dailyDir=up/h4Dir=downと時間軸も割れている。含み損は実額約2,043円だがhardSlPrice(距離5.09%)で保護されたまま保持継続可能で急ぐ必然性は薄い。3者合意に至らず却下 cursor=提案時点では含み損-3.06%・strong_against・逆行52.9でcut_now条件は満たすが、proposedAgeHours=2.9で現値・エネルギー未更新。加えてreverse.fading=trueで逆行減衰の可能性があり、現状確認なしでは損切り承認の確信が持てない（neutral）
 - 判断前にHANDOFF.mdでP(params)の直近履歴（2026-09-25 00:37にresumeStableHours2→1を含む変更を根拠薄弱として却下した前例）とM(exit omg_jpy)の直近履歴（同日9/30 15:08に別の提案(-0.26%含み損・fading・alignment=neutral)を却下済み、同型の9/28 xlm_jpy「intensity=building表示とrising/fading実測の食い違い」パターン）を確認済み。pendingは本件2件のみ。コード変更なし
 
+### 2026-09-30 21:40 JST — Claude Code
+- 9/30(JST)確定損益: S +171円(5回、粗利302−手数料131)、P +495円(5回)、M 0円（新建玉omg_jpy 約6.7万円、含み損−490円）、L(デモ)+332。本番計+666円
+- 手数料比較（実約定から算出）: GMOコイン(P) 実効 買0.0010%/売0.0053%（リベート44件・0円87件）、bitFlyer(S) 0.150%/0.150%。15,000円ロット1往復の純益はbitFlyer約12円 vs GMO約56円
+- **ユーザー: GMOコイン口座を開設する**（法人口座でSの運用を移す想定か確認中）。開設後: APIキー発行（出金権限なし、.envへ直接）→Pのコードを元に法人用チーム作成・法人決算シート接続→bitFlyer S停止と保有BTCの扱いを決める→DRY_RUN確認→本番
+
 ### 2026-09-30 15:08 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=eth_jpy decision=rejected rationale=reasonJaは逆行に転じたとするが実データはalignment=against(strong_againstでない)・quality=medium・ADX13.1と弱く、reverse.intensity=fading/rising=false/hint=wait_scratchで反転が強まっていない。日足・H4とも依然upで上位足トレンドは崩れていない。9/21・9/24・9/26・9/27・9/28と同ペアで繰り返し却下してきたfading/wait_scratch矛盾パターンと同型のため今回も整合させ却下。含み益+8.92%はhard_sl(15.54%余裕)で保護継続可能。3者合意に至らず却下 cursor=提案から約8.9時間経過し、利確判断の根拠となる提案時点の価格・逆行エネルギーは現状と乖離しうる。加えて同一サマリ内でverdict=take_profitとreverse(fading/wait_scratch)が矛盾し、日足・H4はupのまま、ADX13.1と逆行強度も弱いため、承認・却下の確信が持てない（neutral）
 - team=L type=resume decision=approved rationale=metrics検算: drop1h≈0%/drop2h-0.0135%/drop6h-0.0387%/drop24h-0.339%はいずれもpause閾値(-0.8/-1.2/-2/-3%)から十分乖離し、resumeゲート(24h -1.5%基準)も満たす。belowSma=true・smaSlopeNeg=trueは残るが、Lの停止ルール上drop1h≤-0.4%またはdrop2h≤-0.6%と組み合わさって初めて停止材料化するところ実測はいずれも満たさずreasonと整合。クールダウン(6h)は現在基準で完全消化(経過11.5h)、confidence0.75は通常再開閾値0.6を上回る。HANDOFF確認: 前回(9/30 00:32)承認から約3時間で今回のpausedAt(03:35)に至っており、L従来の8〜10時間周期より短い点は留意点だが単発でありまだ繰り返しパターンとは言えない。デモ運用でダウンサイドも限定的なため、留意点として記録した上で承認。cursor=クールダウンは充足(停止約11.5h・残り0)し、提案時点のdrop24h≈-0.34%はresume24hMaxDropPct(-1.5%)より浅い。一方metricsは提案から約9時間前の値で、現時点の価格・安定性を確認できず、belowSmaかつsmaSlopeNegのままかも不明なため再開を確信できない（neutral）
 - team=M type=exit refId=omg_jpy decision=rejected rationale=reasonJaは逆行が強いため撤退とするが、実データはenergy.reverse.intensity=fading・rising=false・hint=wait_scratchで反転はむしろ弱まっており矛盾する。alignment=neutralで方向性も弱く、日足up/H4downと時間軸も割れている。含み損-0.26%(-171.6円)はごく僅かでhard_sl(7.76%余裕)で保護されたまま保持継続として問題ない。M exitで繰り返し確認してきたreasonJa主張と実データ(fading/wait_scratch)の食い違いパターンと同型のため却下。3者合意に至らず却下 cursor=提案から5.2時間経過し、建値・含み損益・エネルギーの現状が不明。提案時点では含み損-0.26%・逆行fading・日足upで急を要する損切り根拠は薄く、承認も却下も確信できない（neutral）
 - 判断前にHANDOFF.mdでM(exit eth_jpy)の直近履歴(9/21・9/24・9/26・9/27・9/28の同型fading/wait_scratch矛盾却下パターン)とL(resume)の直近履歴(8〜10時間周期の安定サイクル、直近5日間再停止なし)を確認済み。L resumeは前回00:32承認から約3時間で再停止という新しい短周期が今回初めて観測された点をrationaleに明記(デモ運用のためダウンサイド限定的と判断し承認)。omg_jpyは新規refIdで初出。pendingは本件3件のみ。コード変更なし
 
+### 2026-09-30 10:05 JST — Claude Code
+- **10:20 JST追記**: TP売り数量を「買いで実際に受け取ったBTC（約定−手数料、取引所の`total_commission`）÷(1+売り手数料率)」に変更（`engine.js`の`tpSellAmount`、`client.js`に`commission`追加）。bitFlyerは売りで「数量＋手数料BTC」が必要なため、従来は1ロットあたり約0.0000034BTC不足し最後のロットの売りが拒否されていた（08:40の`Insufficient funds`の原因と推定）。TP発注のエラーでtick全体を止めないよう変更。bitFlyer APIは小数第8位の数量も受付（離れた価格の買い指値で試験→即取消済み、ロット取込なし）。スタブで4ロットとも売れ端数≒0を確認。ConoHa反映済み
+- **Team-S 法人決算シートを作成・本番同期開始**（ユーザー決定: 事業年度4/1〜3/31・移動平均法(届出なし=法定)・法人のBTCはS口座のみ・Pと同じ自動送信）
+- 新スプレッドシート「Team-S 決算（bitFlyer法人）」（clasp create、ID `1RMVwpeqMpws63ZyDJYE0SY2-mum9C8457MrhAXeLYoM`）＋新GAS `bitflyer-gas-team-s/`（`gas-clasp/projects.json`にlabel S登録）。Webアプリはユーザー作成のデプロイ `AKfycbzgLWNIL1…`（@2）を使用。**GAS変更時は `clasp push` 後に `clasp deploy -i AKfycbzgLWNIL1lgb71kJ5YceA4sJ9Dl3_HOvGdsMuU7VSWPO8aqg2H4YPjjbS5okkn64fld-A` が必要**
+- シート: `決算_集計`（事業年度ごと・期末時価は数式で`決算_期末時価`を参照）/`決算_取引明細(移動平均)`/`決算_期末時価`（Botが3/31 23:50〜24:00の最終価格を記録、D列に手入力で上書き可・同期で消えない）/`決算_注意事項`＋参考シート（運用損益は事業年度集計）
+- Bot（`bitflyer-team-rumeway`）: 新規`src/ledger/corpTax.js`（移動平均・BTC建て手数料を数量で反映）、`sheetsExport.js`を個人用総平均→法人用に置換、手数料補正をBTC×約定価格で円換算に修正（運用損益(参考)の手数料が0扱いだった）、`sheetsSync.js`（apiVersion 4）、`worker.js`（3/31最終価格記録）。ConoHa反映済み、`sheets sync ok corpLedger=5 corpSummary=1`確認
+- 検証: 単体テスト（移動平均・3/31→4/1境界・原価繰越）全PASS、本番実約定5件の期末数量0.0035317BTCがbitFlyer実残高と一致、GASはスタブで全シート書込・手入力保持を確認。試算: 2027年3月期 譲渡損益−39円＋評価損益約−46円＝約−85円（口座評価額の変化−84円と整合）
+- `.env`（S、ローカル/VPS）に `SHEETS_WEBAPP_URL`・`SHEETS_SYNC_TOKEN` を設定（値は記載しない）。VPSからの初回同期のみ`unauthorized`（原因不明、共有鍵設定の反映前の可能性）→再起動後は成功
+- 会計処理の前提（時価評価の対象・手数料の扱い）は一般論に基づく参考計算。税理士確認が必要
+
+### 2026-09-30 08:40 JST — Claude Code
+- **S本番のバグ2件を修正・ConoHa反映済み**（`bitflyer-team-rumeway/src/trap/engine.js`のみ）。①`isOrderFilled`が引数に無い`lot`を参照し、注文が有効一覧から外れた瞬間に毎回例外→約定済み4本（13.25M/13.2M/13.15M/13.1M、計0.00454BTC）をBotが検知できずTP未発注だった（9/29 22:32〜約10時間、4,799回）。`kind`を引数化。②`pruneStaleGridOrders`が取消した買いのロットをDBから消さず、取消済み5本が枠を塞いで新規買いが止まっていた→取消時にロット削除を追加
+- ユーザー承認のうえ本番DB（`team-rumeway-live.sqlite`）から取消済み・未約定の5ロットのみ削除（取引所に存在しない・JPY拘束0・約定0を確認済み）。全体リセットはしていない
+- 反映後: 3本のTP売り（13.3M/13.25M/13.2M）発注済み、グリッド新規買い再開、tick正常
+- **未解決**: 4本目（買13.1M）のTP売りが`Insufficient funds`で拒否。BTCの手数料差引で約定数量0.00114>空き。空き0.00112811に対し0.001128でも拒否され原因不明。再発注失敗はログのみで他処理は止めないよう修正済み。約0.00113BTC(約1.5万円)がTP無しで保有中
+- **気づき（未対応）**: S本番DBは新規ファイルのため学習パラメータが`config.js`の既定値（drop1h −2.5%/aiStop 0.55等）で、9/24に統一したS値（−3%/0.6等）ではない
+- **09:00 JST追記**: ユーザー情報「bitFlyerは0.001BTC単位」→TP再発注の切り詰めを0.001BTC単位に変更・反映。買13.1MロットのTP売り(0.001BTC@13.15M)発注済み（端数約0.00013BTCは残る）。学習パラメータを本番DBで9/24統一値（drop −3/−4/−5/−8%、aiStop 0.6、aiResume 0.55ほか）へ戻した（`manual_unify_to_S`で記録）
+- **09:05 JST追記**: `bitflyer-team-rumeway/src/config.js`の`DEFAULT_LEARNED_PARAMS`も統一値（drop1h −3%/drop2h −4%/aiResume 0.55/aiStop 0.6）に変更・ConoHa反映済み。今後DBを新規作成しても統一値で始まる
+
 ### 2026-09-30 00:32 JST — Claude Code（定期AI協議）
 - team=L type=resume decision=approved rationale=metrics検算: drop1h-0.009%/drop2h+0.012%/drop6h-0.32%/drop24h-0.09%はpause閾値(-0.8/-1.2/-2/-3%)から十分乖離、resumeゲート(24h -1.5%基準)も満たす。belowSma=true・smaSlopeNeg=trueは残るが、Lの停止ルール上drop1h≤-0.4%またはdrop2h≤-0.6%と組み合わさって初めて停止材料化するところ実測はいずれも満たさずreasonと整合。クールダウン(6h)は現在基準で完全消化(経過9.7h)、confidence0.75は通常再開閾値0.6を上回る。HANDOFF確認: 直近のL resume承認(9/24 15:17)後は約5日間再停止なく安定稼働しており、承認直後の短時間再停止パターンはLに無い。Cursorはneutralで懸念は提案から約6.4h経過したmetricsの古さのみで方向性への異論なし。承認。 cursor=クールダウンは充足(経過9.7h・残り0)で提案時点の下落も閾値内だが、metricsは約6.4h前の提案時点値のみで現在の価格・安定性が確認できず、SMA下方・傾き負のまま再開を断定できないため保留（neutral）
 - 判断前にHANDOFF.mdでL(resume)の直近1〜2週間の履歴（9/22 15:08・9/23 06:03・9/24 00:36・9/24 15:17の各承認と、いずれも承認後に数時間〜数日の安定稼働が続き短時間再停止パターンが無いこと）を確認済み。pendingは本件1件のみ。コード変更なし
+
+### 2026-09-29 21:35 JST — Cursor
+- ユーザー: S入金366000完了・本番開始指示
+- 残高確認 JPY free=366000 → `go-live-s.sh` 実行: META resetTeamHistory(S) pnl17/ai3/consult2 → `DRY_RUN=false`・`team-rumeway-live.sqlite`
+- 起動確認: dryRun=false、実買い5本（stop+limit）、locked≈75000、JPY free≈306186、mode=normal
+- Mac `.env` も DRY_RUN=false に同期（pushで戻さないため）
 
 ### 2026-09-29 06:01 JST — フォールバック判断（Claude Codeヘッドレス不通）
 - team=S type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: AI障害後のheuristicフォールバック提案で、根拠となるmetricsPlain・position・energyがない。learnedBarHoursを4→8へ倍増すると急落判定の時間窓が実質2倍に変わり影響が大きいが、その妥当性を裏付ける材料が不足するため承認判断は保留。 (Claude不通、Cursor neutralで安全側却下)
@@ -338,6 +475,59 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=P type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 変更はaiEarlyResumeMinConfidenceの0.85→0.80のみで幅は小さいが、resume_lateの件数・実confidence分布・早期再開した場合の損益比較などの数値根拠がなく、根拠が薄い。ライブ資金向けに早期再開閾値を緩める可否は現状データだけでは判断できない。 (Claude不通、Cursor neutralで安全側却下)
 - team=S type=resume decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: クールダウンは現時点で完了(経過7.4h/6h)だが、根拠となるmetricsPlainは提案時点で約5時間前の値。当時も再開ゲート(-2.58% vs -3%)は余裕が薄く、SMA下・傾き負の弱トレンドは残る。現値・直近下落が更新されていないため再開可否の確信が持てない。 (Claude不通、Cursor neutralで安全側却下)
 - team=S type=params decision=rejected rationale=Claude Code利用不可、オートくん(Cursor)も確信が持てない(neutral)ため安全側で却下: 変更はaiStopMinConfidence 0.65→0.7のみで範囲は狭いが、根拠のstop_false各エピソードの数値・真偽判定や、閾値上げで取りこぼす真の急落停止の有無を提案内から検証できない。停止を起こしにくくする方向のため、根拠未確認のまま承認は控えneutral。 (Claude不通、Cursor neutralで安全側却下)
+
+### 2026-09-28 20:10 JST — Cursor
+- ユーザー: Claude再開時に共有できるよう引き継ぎを整えておく
+- 親 `HANDOFF.md` 先頭に **「Claude Code へ引き継ぎ」** 節を追加（方針・済・次・禁止を1画面分）
+- S/META の個別 HANDOFF も同方針で整合済み。GitHub pushは未（必要なら別指示）
+
+### 2026-09-28 20:05 JST — Cursor（追記）
+- ユーザー: bitFlyerの銀行確認が取れ次第入金。**今後はPよりSをメインで進める**
+
+### 2026-09-28 20:05 JST — Cursor
+- ユーザー指示: S入金→本番時のDB取り違え防止、本番時METAシートを0から
+- S: `DRY_RUN`でDB分離（`team-rumeway-dryrun.sqlite` / `team-rumeway-live.sqlite`）。起動時にモードとファイル名の食い違い・本番初回の非空lotsを拒否。Dockerfileの固定`DB_PATH`を削除。VPSのデモDBをdryrunへリネーム済み（lots=5継続確認）
+- META: `action=resetTeamHistory&team=S`（損益ログ/AI変更/協議をチーム単位で削除）＋メニュー3c。clasp push + deploy **@22**
+- 本番切替スクリプト: `bitflyer-team-rumeway/scripts/go-live-s.sh`（`CONFIRM_LIVE=1`必須。METAゼロ→DRY_RUN=false）。**未実行**（入金＋明示指示待ち）
+
+### 2026-09-28 19:50 JST — Cursor
+- ユーザー指示で **Team-K 完全削除**: VPSコンテナ/イメージ/ディレクトリ削除、Mac `bitbank-team-k/` 削除。控え `/root/deleted-team-k-backup-20260928-194552.tar.gz`
+- META: `Config.js` の `META_TEAMS` から K 除外 → clasp push + deploy **@21**（稼働ID更新）。`cursor-opinion.mjs` から K を除外し VPS meta-consult へ反映
+- M（同bitbank口座）・P・S・L・T は継続。KのGeminiキー→S移行は未実施（必要なら別指示）
+
+### 2026-09-28 19:45 JST — Cursor
+- ユーザー: Claude週次上限で明日いっぱい使用不可のため、急落STOP系の稼働確認を依頼
+- 確認結果: K=停止済。M/P/Sは急落AI(Gemini)が継続判定中（continue・ERROR 12h=0）。L=normal・建玉あり・ERROR0（直近AI stopログは少ないが稼働自体は健全）。T=研究枠・建玉0。META healthは前回15:07 ok。Claude不通時は`run.sh`→`fallback-decide.mjs`（Cursor単独→両方2回連続でGemini自動）が既設
+
+### 2026-09-28 19:37 JST — Cursor
+- ユーザー指示: Sの紙デモDBリセット（本番化前の誤認対策）。バックアップ`team-rumeway.sqlite.bak-before-reset-20260928-193654`作成後、`lots`/`trade_fills`/`ops_profits`削除、`crash_state=normal`、関連kvクリア。`DRY_RUN=true`・LEVEL=15000・予算366000のまま recreate
+- 再起動後: `mode=normal buys=true locked≈75000`（=新デモ5本×15000で正常）。実bitFlyer残高との食い違い解消（紙の350000誤認は消滅）
+
+### 2026-09-28 19:15 JST — Cursor
+- ユーザー指示: bitFlyer最小0.001BTC確認後、**LEVEL_JPY=15000**でデモ稼働。Sを`DRY_RUN=true`・予算366000・corporateのまま recreate。起動ログ `levelJpy=15000 budget=366000 dryRun=true`確認（level警告なし）。紙DB由来で`crash_pause`継続中の可能性あり
+
+### 2026-09-28 18:50 JST — Cursor
+- ユーザー: bitFlyerへ入金開始、**まず366,000円スタート**
+- S設定更新（VPS recreate反映）: `RUMEWAY_BUDGET_JPY=366000`、`LEVEL_JPY=5000`（POLICYのK相当ロット）、`DRY_RUN=true`、`BITFLYER_ACCOUNT_KIND=corporate`。起動ログ `budget=366000 levelJpy=5000` 確認済み。入金反映後に残高照合→紙確認→LIVE判断
+
+### 2026-09-28 18:45 JST — Cursor
+- ユーザー指示「A: キー差替＋疎通テスト・DRY_RUN維持」。Sの`.env`（VPS+ローカル）のbitFlyer APIキーを差し替え、当初`personal`→直後ユーザー指示で**`BITFLYER_ACCOUNT_KIND=corporate`**に変更、`DRY_RUN=true`のまま再起動。`bitflyer-ping`で公開API＋**private署名OK**（残高0＝入金前）。秘密の値はHANDOFF/ログに記載しない
+- 次: 銀行着金→bitFlyer入金→予算調整→紙確認後にLIVE判断
+
+### 2026-09-28 18:32 JST — Cursor
+- ユーザー: 出金待ちの間にSのAPI設定とdemoを試す意向
+- VPS確認: Sは既に`DRY_RUN=true`・`BITFLYER_ACCOUNT_KIND=personal`・APIキー設定済み。`npm run bitflyer-ping`で公開API＋**private署名OK**（残高ゼロ＝入金前と整合）。紙運用継続中（`crash_pause`、params pendingあり）
+- 予算は現状`RUMEWAY_BUDGET_JPY=2700000`/`LEVEL_JPY=25000`のまま（入金後に身の丈へ調整予定）
+
+### 2026-09-28 18:27 JST — Cursor
+- ユーザー: bitbank **出金申請完了**を連絡。API確認: JPY free≈200,234 / onhand≈567,004（差額≈366,770が出金拘束中と整合）、ETH/XLM各0.0001、BTCなし。M継続・K停止のまま
+- 次: 銀行着金→bitFlyer JPY入金→S API設定・疎通
+
+### 2026-09-28 18:10 JST — Cursor
+- ユーザー: bitFlyer個人口座開設完了。bitbankからJPYで資金移行（M用20万残して出金）、のち法人キー差替予定
+- **Team-K停止＋M以外清算（ユーザー指示・実行済み）**: `docker stop bitbank-team-k`。同口座で`btc_jpy`注文30件全取消→K分BTC成行売り2回。残: JPY自由≈565,707 / BTC・ETH・XLM各0.0001（M建玉）/ アクティブ注文0。MはUp継続（eth/xlm/btc open=3/3）
+- 出金額の最終確認・出金操作はユーザーがbitbank画面で実施。次はSのAPI設定〜疎通（Agent）
+- コード変更なし（運用操作のみ）。詳細は`bitbank-team-k/HANDOFF.md`
 
 ### 2026-09-28 15:06 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=eth_jpy decision=rejected rationale=reasonJaは『勢いが売り優勢(逆行方向)に転じた』とするがalignment=against(strong_againstではない)・quality=medium・ADX18.8は弱いトレンドで、逆行本体はintensity=fading・rising=false・hint=wait_scratch(様子見)であり反転が強まっているわけではない。日足・H4とも依然upで上位足トレンドは崩れていない。含み益+8.58%(実額3.3円)はhard_sl(15.27%の余裕)で保護されたまま保持継続として問題ない。9/21・9/24・9/26・9/27に同ペアで繰り返し却下してきた『reasonJaの反転主張とreverse=fading/wait_scratchの食い違い』パターンと同型であり、今回も整合させ却下。3者合意に至らず却下 cursor=提案から7.7時間経過しmetricsは提案時点のまま。含み益+8.58%で逆行(against/fading)はあるが、日足・H4はup継続、ADX18.8で弱く、reverse hintもwait_scratchのため利確の必然性が薄い。現況未更新のため承認判断を保留（neutral）
@@ -349,6 +539,8 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=S type=params decision=approved rationale=aiStopMinConfidence0.6→0.65のみの小幅0.05調整で、drop*PausePct・learnedBarHours等の急落判定の核心的な閾値は据え置き。9/16〜9/22に既知のS頻繁停止/再開サイクル課題への対応方向として9/24 00:36承認分(aiStopMinConfidence0.55→0.6等)と同方向の継続的調整。前回承認時もCursorは同様に定量的な誤停止率データが無い点のみを理由にneutralであり、今回も同型のためその前例と整合させ承認。デモ運用でダウンサイドも限定的。 cursor=neutral（変更はaiStopMinConfidence 0.60→0.65のみで急落系閾値は据え置きだが、誤停止の件数・頻度・当時の信頼度分布などの根拠がなく、効果と副作用を検証できないため承認判断は保留）
 - 判断前にHANDOFF.mdでS(params)の直近履歴（9/23 00:33のheuristicフォールバック却下、9/24 00:36の同種小幅調整承認＝今回と同型のCursor neutralパターン）を確認済み。pendingは本件1件のみ。コード変更なし
 
+### 2026-09-27 18:00 JST前後 — Cursor（朝の確認・Ask）
+- 稼働確認: K/M/P/S/L/T Up。損益META: 本番当月 K+2,499 / M−1.1 / P+13,111。pending=M exit eth_jpy（その後の15:00判断結果は本エントリ時点で未追記）
 ### 2026-09-27 15:02 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=btc_jpy decision=rejected rationale=action/position.stateの整合(含み益+2.14%・take_profit)自体は矛盾ないが、reasonJaは「全体の勢いが売り優勢(逆行方向)に転じた」と述べる一方、実データはenergy.reverse.intensity=fading・rising=false(逆行はむしろ弱まり中)でhint=wait_scratch(様子見/スクラッチ示唆で決定的な利確シグナルではない)、alignment=neutralで方向性が矛盾。ADX18.7は弱いトレンドでminusDI(24.6)>plusDI(20.3)もわずかな差。日足up/H4downと時間軸も割れている。金額極小(¥27.7)でhard_sl(価格まで9.93%の余裕)に守られたまま保持継続でも損失リスクは限定的。9/25 00:37・9/26 06:03の同チーム同ペア(btc_jpy)の過去2回の却下と同型の「reasonJaの強まる主張と実データ(fading/wait_scratch)の食い違い」パターンであり、今回も整合させ却下。3者合意に至らず却下 cursor=提案から約8.9時間経過し、metrics/エネルギーは提案時点の値のため現状と一致するか判断できない。加えて逆行はfading・hintはwait_scratchで、利確根拠の勢いも弱い。含み益+2.14%は事実だが、陳腐化により承認も却下も確信が持てない(neutral)
 - 判断前にHANDOFF.mdでM(exit btc_jpy)の直近履歴（9/25 00:37・9/26 06:03の同ペア却下、いずれも同型のfading/wait_scratch矛盾パターン）を確認済み。pendingは本件1件のみ。コード変更なし
