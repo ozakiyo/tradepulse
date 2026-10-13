@@ -4,21 +4,23 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-10-09 08:45 JST / **Claude Code**（M 決済判断のAI呼び出し削減、P/V 1段の余裕、S 境目の出し入れ修正） |
+| 最終更新 | 2026-10-13 21:30 JST / **Claude Code**（**S 終了・削除**、V 本番準備：予算41.3万・1段17,000・複利・決算シート通算） |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
-| 本番 | **M・P・S**（実資金）。**Kは削除済み**。**主力はS** |
-| デモ | L・T・**V(GMO法人・DRY_RUN、口座開設待ち、META登録済み)**・**W(bitbank暗号資産ML・紙運用、10/4新設)** |
+| 本番 | **M・P**（実資金）。**S は 2026-10-13 に全決済・停止・プログラム削除**（資金は円で GMO 法人口座＝V へ）。K は削除済み |
+| デモ | L・T・**V(GMO法人・DRY_RUN。法人口座は開設済み・ハガキ到着後に API キー → 本番化。S の後継)**・**W(bitbank暗号資産ML・紙運用、10/4新設)** |
 
-## Claude Code へ引き継ぎ（2026-09-29更新）
+## Claude Code へ引き継ぎ（2026-10-13更新）
 
 ### いまの方針
-- **主力は S（bitFlyer Rumeway）本番稼働中**（2026-09-29 21:34 JST 切替済）。P は当面並行
-- M は bitbank 継続
+- **法人の運用は S（bitFlyer）→ V（GMOコイン法人）へ移行中**。S は 10/13 に全決済・停止・削除済み。V は API キー（ハガキ到着後）待ち。手順は [gmo-team-v/HANDOFF.md](gmo-team-v/HANDOFF.md)
+- P（個人 GMO）・M（bitbank）は継続
 
-### すでに済んでいること
-- S: 入金 JPY available=366000 確認 → META `resetTeamHistory`（pnl17/ai3/consult2）→ `DRY_RUN=false`・`team-rumeway-live.sqlite` で起動
-- 初回tickで実買い注文5本（stop1+limit4）、locked≈75000、JPY free≈306186
-- デモDB `team-rumeway-dryrun.sqlite` は残置（本番とは分離）
+### S 終了の記録（2026-10-13）
+- 21:05 JST: Bot 停止 → 注文15件取消 → 0.01348105 BTC 成行売り → 残高 **JPY 363,889**・BTC 0.00000675（売却不可の端数）。約定148件を決算シートへ最終送信（譲渡損益 −1,986.79円 試算）
+- 削除: VPS のコンテナ・イメージ・`/opt/tradePulseNode/bitflyer-team-rumeway`、Mac の `bitflyer-team-rumeway/`、META 協議 `cursor-opinion.mjs` の S（VPS バックアップ `.bak-20261013`）
+- **保存**: `_archive/team-s-20261013/`（Mac、git 対象外。VPS一式＝DB含む／ローカル一式。`.env` は含めない）。法人の帳簿資料として保管
+- **残したもの**: 決算シート「Team-S 決算（bitFlyer法人）」と GAS `bitflyer-gas-team-s/`（V と共用、S の約定は V のコード `src/ledger/seed/` に同梱して通算）。META の S 列（META_TEAMS は末尾追加のみのため消さない）
+- ユーザー作業: bitFlyer から円を出金 → GMO 法人口座へ入金（＋5万円追加）。bitFlyer の API キーは不要になったので取引所側で削除推奨
 
 ### 次（様子見）
 1. 約定・TP・急落STOPの初動監視
@@ -60,7 +62,7 @@
 | N | `saxo-team-n/` | [HANDOFF.md](saxo-team-n/HANDOFF.md) |
 | O | `saxo-team-o/` | [HANDOFF.md](saxo-team-o/HANDOFF.md) |
 | P | `gmo-team-p/` | [HANDOFF.md](gmo-team-p/HANDOFF.md) |
-| S | `bitflyer-team-rumeway/` | [HANDOFF.md](bitflyer-team-rumeway/HANDOFF.md)（ルーメウェイ＝P戦略のbitFlyer版・**今後の主力**） |
+| S | （2026-10-13 削除） | 終了。記録は上の「S 終了の記録」と `_archive/team-s-20261013/` |
 | V | `gmo-team-v/` | [HANDOFF.md](gmo-team-v/HANDOFF.md)（Victory＝P戦略のGMOコイン**法人**口座版） |
 | Q | `saxo-team-q/` | [HANDOFF.md](saxo-team-q/HANDOFF.md) |
 | R | `saxo-team-r/` | [HANDOFF.md](saxo-team-r/HANDOFF.md) |
@@ -234,10 +236,19 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-13 21:30 JST — Claude Code（S 終了・V 本番準備）
+- GMO 法人口座が開設（ハガキ待ち）。ユーザー決定: S の資金を円で V へ移す・S は本日決済して停止→プログラム削除・決算シートは1つ・コインチェック不要・追加入金5万円
+- S: 停止スクリプト（全注文取消→全量成行売り→約定取込→シート送信）を本番実行。初回は bitFlyer が売り手数料を BTC で別に引くため「残高不足」→ 数量を残高/1.0016 にして成功
+- V: 予算 413,000・1段 17,000（S の 15,000/366,000 と同じ比率）、複利を S から移植（`src/risk/compound.js`、`COMPOUND_START` は本番開始時に設定）、決算計算を行ごとの手数料通貨に対応し S の約定148件を先に並べて通算（S 自身の計算と完全一致を確認）。デモのまま反映
+
 ### 2026-10-13 15:04 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=mona_jpy decision=rejected rationale=reasonJaは逆行強まりを理由にcut_now(building/75.2)とするが、実測はreverse.rising=false・fading=trueで、2026-10-06以降mona_jpyで7回連続確認済みの『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンと同型。含み損-3.27%に対しhard_sl距離4.89%とまだ余裕があり拙速な決済の必要性は低い。Cursorもneutralで3者合意に至らず却下。ポジションはhard_slに守られたまま保持継続。 cursor=提案から約5.7時間経過し判断材料は提案時点のまま。含み損-3.27%・逆行building/75.2・日足/4Hともdownで損切り根拠はあるが、reverse.fading=true・ADX18.3と勢いは弱く、ハードSLまでなお約4.9%ある。現在の再確認なしでは遅延損切りの可否を確信できない。
 - team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更で、2026-10-05から10-12まで全く同一の変更がepisode46/53/56/60の言及のみを根拠に8回連続で却下されてきている。今回もepisode46/60を挙げるのみでposition/energy/metricsPlain等の定量的裏付けは依然無く、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま9回目も見送る。Cursorもneutralで3者合意に至らず却下。 cursor=1h/2hの一時停止閾値を各0.5pt緩和する小幅変更で方向は理にかなうが、根拠のEpisodes46/60の実データやposition等の裏付けがproposal内になく、効果・副作用を確信できないため。
 - 判断前にHANDOFF.mdでM(exit mona_jpy)の直近履歴(10-06以降7回連続・building/fading矛盾)とM(params)の直近履歴(10-05〜10-12に8回連続・episode番号のみで定量根拠不足)を確認済み。いずれも状況が変化していないため前例と整合させ両件とも却下。pendingは本件2件のみ。コード変更なし。`meta-record.sh`は2件とも「Googleドライブのページが見つかりません」の既知の表示問題(未解決0c)を返したが、再取得したdumpで2件とも正しく記録(rejected)されていることを確認済み(実害なし)。
+
+### 2026-10-13 08:50 JST — Claude Code
+- **20:50 訂正**: 2.5 系は呼び出すと 404（新規ユーザー提供終了）で無効だった → M/L とも gemini-3.5-flash-lite に差し替え（3キーで呼び出し 200 を確認）
+- M/L の Gemini 429 対策: VPS `.env` の `GEMINI_MODELS` に gemini-2.5-flash / 2.5-flash-lite を追加し再起動（コード変更なし、`.env.bak-20261013`）。M の3キーは別プロジェクト（ユーザー確認済み）。効果は翌日ログで確認
 
 ### 2026-10-13 00:33 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=mona_jpy decision=rejected rationale=action=cut_lossとposition.state(含み損-0.53%)は整合するが、reasonJaは「逆行が強い」としてenergy.reverse.intensity=building(39.7)・hint=cut_nowを根拠にする一方、実測はrising=false・fading=trueで過去に繰り返し確認してきた『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンと同型。ADXもplusDI15.4>minusDI13.2でむしろ買い優勢とも読め、strong_against主張との整合性も薄い。含み損はわずか-0.53%/-350円でhard_sl距離7.51%と十分遠く拙速な決済の必要性は低い。Cursorもneutral(同じ矛盾を指摘)で3者合意に至らないため却下。ポジションはhard_slに守られたまま保持継続。 cursor=建値付近の微損(-0.53%/-350円)でstrong_againstかつ日足・H4がdownなのは撤退材料だが、逆行がcut_now/building一方でfading=true・rising=false、ADX22.9でトレンド未確認と矛盾。ハードSLまで7.5%あり緊急性も薄く、即承認/却下の確信が持てない。
@@ -248,6 +259,12 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更で、2026-10-05から10-11まで全く同一の変更がepisode46/53/56/60の言及のみを根拠に7回連続で却下されてきている。今回もepisode46/53/60を挙げるのみでposition/energy/metricsPlain等の定量的裏付けは依然無く、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま8回目も見送る。3者合意に至らず却下。 cursor=drop1h/drop2hの停止閾値をわずかに深くするだけで方向性は理にかなうが、根拠のEpisodes 46/53/60は提案内要約のみで検証できず、position/energy/metricsPlainも無い。承認・否認の確信は持てない。
 - team=V type=resume decision=approved rationale=2026-10-12 11:30のHANDOFF更新で、Vのresume却下を続けてきた根本理由(team固有ドキュメントとMETA実態の矛盾・cursor未対応)は解消済みと確認(資料が古かっただけでVはDRY_RUNデモとして正しく稼働中、cursor-opinion.mjsにも10/12にV追加済み)と判明したため、今回は通常どおりmetricsで判断。metricsPlain検算: 学習窓4/8/24/96hの変化率(-0.21%/-0.48%/+0.54%/+0.29%)はpause閾値から十分な余裕、resumeゲート(約24h +0.54%≧-3%)も満たす。hardFloorHit=false、price_above_sma20=true、slope非負。クールダウンは現在基準で完了(停止から84.5h経過)。confidence0.85はaiResumeMinConfidence0.55を十分上回る。デモ運用でダウンサイドも限定的。3者合意のため承認。 cursor=クールダウンはderived上で完了済み。resume24hゲートはapprox_24h+0.54%で下限-3%を大きく上回る。SMA20上・傾き非負・hardFloor未達。confidence0.85はaiResumeMinConfidence0.55を満たす。
 - 判断前にHANDOFF.mdでM(exit mona_jpy)の直近履歴(5回連続・building/fading矛盾)、M(params)の直近履歴(7回連続・根拠不足)、V(resume)の直近履歴(11:30更新でドキュメント矛盾が解消済みと確認)を確認済み。pendingは本件3件のみ。コード変更なし。`meta-record.sh`は3件とも「Googleドライブのページが見つかりません」の既知の表示問題を返したが、再取得したdumpで3件とも正しく記録(approved/rejected)されていることを確認済み(実害なし)。
+
+### 2026-10-12 12:15 JST — Claude Code
+- **Team-M に利益保護ルールを本番導入**（ユーザー決定）: ① 最大含み益 +5% 超のあと、4時間足の確定終値が SMA50 を割ったら成行決済（グランビル売り） ② 最大含み益 +30% 超なら最大含み益の 1/3 を割ったら成行決済。**AI協議の承認を待たない**（ハードSLと同じ扱い）。AI の決済判断は併用。`src/risk/profitGuard.js`、最高値は kv `exit_shadow_peak_<id>`（建玉後の4h高値から引継ぎ）、決済記録は `exit_shadow` テーブル。反映直後の最高値: BAT 26.905（守る位置 約20.84）、DOT 205.555、MONA 12
+- 根拠: 15通貨×3年の検証（`bitbank-team-m/research/exit_study/README.md`）。3年合計 今のM相当 −170% → +295%。通貨別最適化は効果なし。W にもそのまま使える／L・T は FX の Bid/Ask データで別検証が必要／P・S・V（トラリピ）には合わない
+- META AI協議: HANDOFF を GitHub に反映（2e8bf12）、`cursor-opinion.mjs` に V 追加
+
 
 ### 2026-10-12 11:30 JST — Claude Code（Team-V の現状：META AI協議向けの説明）
 - **Team-V は「GMOコイン法人口座用」のデモ（DRY_RUN）チーム**。法人口座は審査中で未開設、取引所のAPIキーは空のまま（実注文なし）。損益は模擬の記録
