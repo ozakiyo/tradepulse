@@ -4,10 +4,10 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-10-14 22:20 JST / **Claude Code**（M の決済提案を即時に1回 AI 協議する仕組み、META 資金計画シート、M の Gemini 呼び出し修正） |
+| 最終更新 | 2026-10-16 08:55 JST / **Claude Code**（**Team-V 本番開始**、P・V の Gemini 修正、即時協議に再開を追加） |
 | VPS | `root@160.251.173.118` `/opt/tradePulseNode/` |
-| 本番 | **M・P**（実資金）。**S は 2026-10-13 に全決済・停止・プログラム削除**（資金は円で GMO 法人口座＝V へ）。K は削除済み |
-| デモ | L・T・**V(GMO法人・DRY_RUN。法人口座は開設済み・ハガキ到着後に API キー → 本番化。S の後継)**・**W(bitbank暗号資産ML・紙運用、10/4新設)** |
+| 本番 | **M・P・V**（実資金。V は 2026-10-16 開始・GMO 法人）。**S は 2026-10-13 に全決済・停止・プログラム削除**（資金は円で GMO 法人口座＝V へ）。K は削除済み |
+| デモ | L・T・**W(bitbank暗号資産ML・紙運用、10/4新設)** |
 
 ## Claude Code へ引き継ぎ（2026-10-13更新）
 
@@ -236,12 +236,23 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-16 08:55 JST — Claude Code（Team-V 本番開始）
+- **2026-10-16 08:50 JST Team-V 本番開始（GMOコイン法人口座）**: ユーザーが法人口座の API キー（取引・残高照会のみ、出金なし）を `.env` に記入（P のキーとは別を確認）。残高 JPY **362,000**（bitFlyer からの送金分。追加5万円は未入金）→ ユーザー決定「今の残高で始める」: `TEAM_V_BUDGET_JPY=90500`（1セット）・`LEVEL_JPY=4560`（×5.04%）・間隔7万・利確14万・4セット。`DRY_RUN=false`、本番DB `DB_PATH=/app/data/team-v-live.sqlite`（デモDBは `data/team-v-demo-final-20261016.sqlite` に保存）、`COMPOUND_START=2026-10-16T08:49:38+09:00`、決算シート送信を有効（S と共用、`sheets sync ok corpLedger=148`）。META `resetTeamHistory V`（損益15行・協議2件を削除、以後 mode=本番）
+  - 起動後: 買い5本（13,020,000 逆指値・12,950,000〜12,740,000 指値、各0.00035 BTC）、取引所の注文5件＝記録5件で一致、利確幅140,000。再起動0
+  - **5万円が入金されたら**: `TEAM_V_BUDGET_JPY=105000`・`LEVEL_JPY=5292` に更新（資金を足すときは 1セット＝資金÷4、1段＝1セット×5.04%）
+- 即時AI協議（08:40〜08:50、再開も対象にした最初の起動）: P 再開→**承認**（08:51 CrashPause OFF）、M 再開→**否決**（承認後すぐ再停止を繰り返す傾向）。V のデモの再開提案は本番切替でリセット
+
 ### 2026-10-16 08:48 JST — Claude Code（定期AI協議）
 - team=M type=exit refId=mona_jpy decision=approved rationale=action(cut_loss)とposition.state(含み損-5.6%、-3692.2円)は整合。energy.reverse=building(70.6)はcutNowMinReverseScore(55)超、hint=cut_nowと符合、fading=falseで『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンには当てはまらない(10/15 11:01・10/16 00:38承認時と同型)。alignment=strong_against(quality=high)、ADXはminusDI25.9>plusDI19.6、daily/H4ともdown。hard_sl距離2.54%まで迫り損切りは妥当。confidence0.95。Cursorもapproveで3者合意のため承認。 cursor=現物ロングが建値11.682→11.028で含み損-5.6%(-3692円)。energyはstrong_against(hyb=-70.6)、逆行building/70.6でcut_now閾値55超、日足・4Hともdown。損切りexitとして妥当。
 - team=P type=resume decision=approved rationale=metricsPlain検算: resumeゲート(約24h+0.68%≧-3%)を十分な余裕で通過(00:38却下時の際どい+0.68%相当=0.03pp差から明確な正側へ改善)。1h+0.38%・6h+1.36%で短期も回復基調、hardFloorHit=false、confidence0.85。クールダウンは現在基準で完了(経過15.4h)。00:38の却下はP自身の再停止履歴ではなく同時期のM resume(15:08承認→17:09再停止)から市場全体への再現性リスクを類推したものだったが、取引所・AIモデルがMと別であり、ゲートも際どさから明確な正側へ改善した実質的変化があるため機械的な却下継続は避けた。Cursorもapproveで3者合意のため承認。 cursor=クールダウン完了(経過15.3h)、resume_gate(+0.68%≧-3%)通過、hardFloor未達。時計1h/6hは+0.38%/+1.36%で短期回復、学習窓も一時停止閾値から遠い。SMA割れ・負勾配は残るがsmaBelowPause=falseのため阻害せず、再開を支持。
 - team=V type=resume decision=approved rationale=metricsPlain検算: resumeゲート(約24h+0.68%≧-3%)を十分な余裕で通過、hardFloorHit=false、1h+0.39%・6h+1.62%で短期も回復基調、confidence0.85。クールダウンは現在基準で完了(経過15.7h)。Vは10/12 15:06の前回承認後約74時間安定稼働してから今回の停止に至っており、承認直後の短時間再停止パターンはV自身には無い。00:38の却下は同時期のM resumeからの類推でゲートも際どかったが、8時間を経て明確な正側へ改善し、取引所・AIモデルもMとは別(デモ)であるため機械的な却下継続は避けた。Cursorもapproveで3者合意のため承認。 cursor=クールダウン済み(停止15.7h>6h)。resumeゲート(約24h+0.68%≥-3%)通過、hardFloor未到達、学習窓の急落閾値未達。1h/6hはプラスで短期回復。SMA下・傾き負はあるがsmaBelowPause=falseで再開阻害条件ではない。
 - team=M type=resume decision=rejected rationale=metricsPlain検算自体は改善(resumeゲート約24h+0.65%≧-3%は00:38の際どい-2.96%通過から明確な正側へ改善)、hardFloorHit=falseでゲート条件は満たす。しかしMは同一市場変動・同一停止エピソードで本日15:08承認後わずか約2時間後の17:09に再停止しており、これは10/7 15:16承認→10/7 18:34再停止(約3.2時間)に続く『承認→短時間での再停止』の2回目の確認済み発生で、00:38協議も同じpausedAt(17:09:43)をこの再現性リスクを理由に既に却下している。4h/8hの学習窓は依然マイナスでbelowSma/slopeNegも継続しており、再開直後に同じ下落継続で再停止する経路が解消されたとは言い切れない。ライブ資金のMであり、同一エピソードでの再開は再現性リスクを最優先し今回も却下する。Cursorはapprove(ゲート・クールダウンの数値のみに基づき、M固有の短時間再停止パターンの履歴は踏まえていない)だが、履歴に基づく判断を優先し却下。 cursor=クールダウン済み(経過15.5h>6h)。学習窓の変化率は閾値を大きく上回り、resumeゲート(約24h+0.65%≥-3%)・hardFloor未達も満たす。SMA下・傾き陰だがsmaBelowPause=falseのため再開拒否理由にならない。
 - 判断前にHANDOFF.mdで各チームの直近履歴(特に00:38のP/M/V resume却下の経緯と、Mの『承認→短時間再停止』が10/7-10/8と10/15 15:08-17:09の2回確認済みであること)を確認済み。P/Vはゲートの際どさが解消され、M固有の再発リスクをそのまま適用する根拠が薄いため承認。Mは当の再発リスク本人であるため却下。mona_jpyは従来の矛盾パターンに当てはまらず承認(10/15 11:01・00:38と同型)。pendingは本件4件のみ。コード変更なし。`meta-record.sh`は4件とも「Googleドライブのページが見つかりません」の既知の表示問題(未解決0c)を返したが、再取得したdumpで4件とも正しく記録(approved/approved/approved/rejected)されていることを確認済み(実害なし)。
+
+### 2026-10-16 08:40 JST — Claude Code
+- **10/16 08:35 P・V の Gemini 呼び出し修正（ユーザー承認、反映済み）**: `src/ai/providers/index.js`。予備モデル追加（3.6-flash, 3.5-flash-lite の後ろに 3.5-flash, 3.1-flash-lite。今の順番は変えない）、1回20秒・全体60秒、時間切れ・503 でも次のモデル、429 のモデルは15分休止。偽の応答で確認、本番 md5 一致・再起動0。VPS `index.js.bak-20261016`
+- **10/16 08:39 即時AI協議に「再開」も追加（ユーザー決定）**: `meta-consult/immediate.sh` の対象を「M の exit」＋「P・V・M の resume」に拡大（24時間に1回まで は同じ）。きっかけ: P・V が 10/15 17時の AI 停止のあと、6:45 の再開提案が 15:00 の定時まで待たされる状態だった。VPS `immediate.sh.bak-20261016`
+- V の法人口座が開設（ユーザー、10/16）。本番移行を開始（API キーはユーザーが記入待ち）
 
 ### 2026-10-16 06:02 JST — Claude Code（定期AI協議）
 - team=V type=params decision=rejected rationale=Gemini呼び出し失敗(HTTP 503)後のheuristicフォールバックによる提案で、市場データやposition/energy等の実質的な根拠が無い。learnedBarHours 4→8(足の構造変更)に加え、drop1hPausePct/resume24hMaxDropPct緩和・resumeStableHours短縮(2→1)・aiResumeMinConfidence低下(0.55→0.5)が同時に提案されており、再開条件を複数同時に緩める内容でライブ化前提のチームとしては慎重であるべき。V型params提案はHANDOFF履歴上初出で前例なし。Cursorもreject(同じ理由)で3者合意に至らず却下。 cursor=AI失敗後のheuristic提案で市場根拠なし。learnedBarHours倍化に加えpause緩和・resumeStableHours短縮・aiResumeMinConfidence低下が同時で再開条件が緩み、ライブ資金向きでない。
@@ -268,6 +279,19 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 - team=M type=exit refId=mona_jpy decision=approved rationale=action(cut_loss)とposition.state(含み損-5.84%)は整合。energy.reverse=building(75.5)はcutNowMinReverseScore(55)超、hint=cut_nowと符合。これまでmona_jpyで繰り返し確認してきた『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンは今回は当てはまらない(fading=falseで矛盾なし、daily/H4ともdownで時間軸混在も無し)。alignment=strong_against(quality=high)、ADXはminusDI24.5>plusDI21.3で売り優勢裏付け。含み損-5.84%・最大逆行5.84%に対しhard_sl距離はわずか2.3%まで迫っており、拡大前に損切りする妥当性は高い。confidence0.95。Cursorもapprove(同じ理由)で3者合意のため承認。 cursor=含み損-5.84%・逆行energy=building/75.5がcutNow閾値55超、日足・4Hともdownでalignment=strong_againstと一致。hardSLまであと2.3%あるがhint=cut_nowで損失拡大回避の損切りとして妥当。
 - team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更で、2026-10-05から10-14まで全く同一の変更がepisode番号(46/53/56/60)の言及のみを根拠に10回連続で却下されてきている。今回もepisode46/56/60を挙げるのみでposition/energy/metricsPlain等の定量的裏付けは依然無く、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま11回目も見送る。Cursorもneutralで3者合意に至らず却下。 cursor=1h/2hの一時停止閾値を-3.0%→-3.5%、-4.0%→-4.5%とわずかに緩和するだけだが、根拠のepisodes(60/56/46)の実データやposition/含み損益がなく、stop_false/neutralの主張を検証できない。ライブ資金向けに感度を緩める判断としては材料不足のため保留。
 - 判断前にHANDOFF.mdでM(exit mona_jpy)の直近履歴(10-06以降、building/cut_now主張とrising=false・fading=trueの実測矛盾を理由に繰り返し却下済み)とM(params)の直近履歴(10-05〜10-14に10回連続・episode番号のみで定量根拠不足)を確認済み。mona_jpyは今回fading=falseで従来の矛盾パターンに当てはまらず、daily/H4の時間軸混在も無く、hard_sl距離2.3%まで迫っていたため、前例と区別して承認。paramsは状況が変化していないため前例と整合させ却下。pendingは本件2件のみ。コード変更なし。`meta-record.sh`は2件とも「Googleドライブのページが見つかりません」の既知の表示問題(未解決0c)を返したが、再取得したdumpで2件とも正しく記録(approved/rejected)されていることを確認済み(実害なし)。
+
+### 2026-10-15 08:50 JST — Claude Code
+- **10/15 08:50 急落STOPの7年検証**（`gmo-team-v/research/trap_study/README.md`）: 今の決まった条件（−3/−4/−5/−8%）は平均の利益 −21% と引き換えに最悪の時期が最も浅く、2022年の下げ相場では止めない場合の約3.6倍。条件は維持が妥当。P の 9月の利益減の主因は AI の停止・再開判断の不調（指標0の不具合、Gemini 上限で再開が通らない）
+
+### 2026-10-14 23:35 JST — Claude Code
+- **10/14 23:30 トラップの区切りを変更（ユーザー決定、P・V とも反映済み）**: 間隔 5万→**7万**、利確幅 5万→**14万**、1段 **1.4倍**（P 27,000→**37,800**、V 3,780→**5,292**）。届く下限は今と同じ約765万円（ユーザー了承「765万円でOK」）。根拠 `gmo-team-v/research/trap_study/README.md`（7年分の試算で年の利益 +25%、最大含み損 約+6%）
+  - 切り替え: `scripts/oneoff-regrid-20261014.mjs` で Bot を止めて古い5万刻みの未約定の買いを取消（P 実取引所で4件、すべて CANCELED_UNFILLED を確認して記録から削除。利確の売り15件・保有15本は触れていない＝**今の玉は従来どおり＋5万で利確**、新しく買う分から＋14万）→ 新設定で起動
+  - 反映後: P `buy placed 13020000/12950000/12880000/12810000/12740000 level=39286`（複利 第1セット倍率1.0393）、各 TP＝買値＋140,000 を DB で確認。V も同様（level=5295）
+  - バックアップ: P/V の `.env.bak-20261014-regrid`（手元・VPS）、P DB `data/team-p.sqlite.bak-20261014-regrid`
+
+### 2026-10-14 23:30 JST — Claude Code
+- **10/14 23:30 トラップ設定の検証**（`gmo-team-v/research/trap_study/README.md`）: 7年分の5分足で再現。利確幅＝間隔の2倍（今なら利確10万）で年の利益 +18%・最悪の時期も浅い（8年すべてで今より上）。間隔10万・利確20万・1段7,560（深さ42%）で +32%。1段の比率を上げる案は深さが浅くなるため非推奨、注文本数は差なし。P 急落STOP は 8/26〜9/24 に19回・292時間で利益 −32%（9/24以降0回）。7年分の停止ルール検証は 10/15 予定。設定はまだ変えていない
+
 
 ### 2026-10-14 22:20 JST — Claude Code
 - **10/14 22:20 M の決済提案は「即時に1回」AI協議（ユーザー決定）**: VPS `meta-consult/immediate.sh`（新規、cron `*/5 * * * *` JST、ログ `immediate.log`）が META の pending を5分ごとに見て、**Team-M の exit 提案**があれば定時を待たず `run.sh` を1回起動。同じ通貨の即時起動は**24時間に1回まで**（`immediate-state.json` に記録）。即時で否決→再提案は定時（0:30/6:00/15:00）の協議、前回の即時から24時間後に再び提案が出たら再び即時。`run.sh` に `flock`（`.run.lock`、最大30分待ち）を追加し定時と即時を直列化。VPS バックアップ `run.sh.bak-20261014`・`/root/crontab.bak-20261014-immediate`。手元の写し `bitbank-gas-meta/scripts/meta-consult-cron/` も同じ。pending が無い状態での空実行は確認済み、実際の即時起動は次の M の決済提案で確認
