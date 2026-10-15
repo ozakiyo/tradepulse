@@ -236,6 +236,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-15 11:01 JST — Claude Code（定期AI協議）
+- team=M type=exit refId=mona_jpy decision=approved rationale=action(cut_loss)とposition.state(含み損-5.84%)は整合。energy.reverse=building(75.5)はcutNowMinReverseScore(55)超、hint=cut_nowと符合。これまでmona_jpyで繰り返し確認してきた『building/cut_now主張とrising=false・fading=trueの実測矛盾』パターンは今回は当てはまらない(fading=falseで矛盾なし、daily/H4ともdownで時間軸混在も無し)。alignment=strong_against(quality=high)、ADXはminusDI24.5>plusDI21.3で売り優勢裏付け。含み損-5.84%・最大逆行5.84%に対しhard_sl距離はわずか2.3%まで迫っており、拡大前に損切りする妥当性は高い。confidence0.95。Cursorもapprove(同じ理由)で3者合意のため承認。 cursor=含み損-5.84%・逆行energy=building/75.5がcutNow閾値55超、日足・4Hともdownでalignment=strong_againstと一致。hardSLまであと2.3%あるがhint=cut_nowで損失拡大回避の損切りとして妥当。
+- team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更で、2026-10-05から10-14まで全く同一の変更がepisode番号(46/53/56/60)の言及のみを根拠に10回連続で却下されてきている。今回もepisode46/56/60を挙げるのみでposition/energy/metricsPlain等の定量的裏付けは依然無く、過去の却下理由は解消されていない。Mは実資金稼働中であり、根拠不足のまま11回目も見送る。Cursorもneutralで3者合意に至らず却下。 cursor=1h/2hの一時停止閾値を-3.0%→-3.5%、-4.0%→-4.5%とわずかに緩和するだけだが、根拠のepisodes(60/56/46)の実データやposition/含み損益がなく、stop_false/neutralの主張を検証できない。ライブ資金向けに感度を緩める判断としては材料不足のため保留。
+- 判断前にHANDOFF.mdでM(exit mona_jpy)の直近履歴(10-06以降、building/cut_now主張とrising=false・fading=trueの実測矛盾を理由に繰り返し却下済み)とM(params)の直近履歴(10-05〜10-14に10回連続・episode番号のみで定量根拠不足)を確認済み。mona_jpyは今回fading=falseで従来の矛盾パターンに当てはまらず、daily/H4の時間軸混在も無く、hard_sl距離2.3%まで迫っていたため、前例と区別して承認。paramsは状況が変化していないため前例と整合させ却下。pendingは本件2件のみ。コード変更なし。`meta-record.sh`は2件とも「Googleドライブのページが見つかりません」の既知の表示問題(未解決0c)を返したが、再取得したdumpで2件とも正しく記録(approved/rejected)されていることを確認済み(実害なし)。
+
 ### 2026-10-14 22:20 JST — Claude Code
 - **10/14 22:20 M の決済提案は「即時に1回」AI協議（ユーザー決定）**: VPS `meta-consult/immediate.sh`（新規、cron `*/5 * * * *` JST、ログ `immediate.log`）が META の pending を5分ごとに見て、**Team-M の exit 提案**があれば定時を待たず `run.sh` を1回起動。同じ通貨の即時起動は**24時間に1回まで**（`immediate-state.json` に記録）。即時で否決→再提案は定時（0:30/6:00/15:00）の協議、前回の即時から24時間後に再び提案が出たら再び即時。`run.sh` に `flock`（`.run.lock`、最大30分待ち）を追加し定時と即時を直列化。VPS バックアップ `run.sh.bak-20261014`・`/root/crontab.bak-20261014-immediate`。手元の写し `bitbank-gas-meta/scripts/meta-consult-cron/` も同じ。pending が無い状態での空実行は確認済み、実際の即時起動は次の M の決済提案で確認
 - L の「hard_sl なのに利益」は不具合ではなく建値移動（+20pips で SL を建値+3pips へ）による決済と確認
