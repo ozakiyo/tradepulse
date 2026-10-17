@@ -236,6 +236,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-18 06:04 JST — Claude Code（定期AI協議）
+- team=M type=params decision=rejected rationale=drop1hPausePct(-0.03→-0.035)・drop2hPausePct(-0.04→-0.045)への変更は2026-10-05以降、episode番号(今回は70/67/60/56)の言及のみを根拠に10回以上連続で却下されてきた提案と全く同一。今回もposition/energy/metricsPlain等の定量的裏付けは無く、過去の却下理由(stop_falseの頻度・時期・損益影響が検証不能)は解消されていない。Mは実資金稼働中であり根拠不足のまま見送る。Cursorもneutral(同じ根拠不足を指摘)で3者合意に至らず却下。 cursor=変更はdrop1h/2hの閾値を各0.5ptだけ緩め、短周期ノイズでの誤停止抑制という方向性自体は妥当だが、position/energy等の現況数値がなく根拠のepisodesも検証できないため承認・却下の確信が持てない(neutral)
+- team=M type=exit refId=bat_jpy decision=rejected rationale=含み益+63.52%の利確提案だが、reasonJaの『売り優勢に転じた』という主張とenergy実測(alignment=neutral・reverse.intensity=fading(score21.7)・hint=wait_scratch)が矛盾。ADXはminusDI22.0がplusDI19.9をわずかに上回るのみで強い売り優勢の裏付けにはならず、dailyDir=up/h4Dir=downと時間軸も混在。bat_jpyは10/15・10/17にも同型の『reasonJaの反転主張とenergy実測の食い違い』パターンで却下済みで、今回も同パターンのため却下。hard_sl距離43.74%で保持継続可能。Cursorもneutral(同じ矛盾・データ鮮度を懸念)で3者合意に至らず却下。 cursor=含み益+63.5%は利確候補だが、根拠のbank_on_reverseと矛盾し逆行はfading(スコア21.7)でhintもwait_scratch。日足up/H4 downで方向も混在し、提案から1.7h経過で現在価格・エネルギーの再確認がないため、承認も却下も確信できない。
+- 判断前にHANDOFF.mdでM(params)の直近履歴(10-05以降10回以上連続・episode番号のみで定量根拠不足)とM(exit bat_jpy)の直近履歴(10/15・10/17の2回・reasonJaの反転主張とenergy実測の食い違いパターン)を確認済み。いずれも状況が変化していないため前例と整合させ両件とも却下。pendingは本件2件のみ。コード変更なし。`meta-record.sh`は2件とも「Googleドライブのページが見つかりません」の既知の表示問題(未解決0c)を返したが、再取得したdumpで2件とも正しく記録(rejected)されていることを確認済み(実害なし)。
+
 ### 2026-10-17 22:16 JST — Claude Code（定期AI協議）
 - team=M type=resume decision=approved rationale=同一pausedAt(10/15 17:09:43)への7回目の提案。18:30のユーザー決定(過去6回の再停止はすべてai_emergencyで決まった条件に達した実績なし)により再現性リスクを却下理由にせず、metricsPlain(学習窓いずれも閾値の50%未満・resume_gate+0.3%≧-3%・hardFloorHit=false)とcooldown消化済みを根拠に承認。Mは再開・新規買い稼働へ復帰（約57時間ぶり） cursor=クールダウン完了(残0h・停止53h)。学習ルール各窓は閾値未達、再開ゲートも充足。短時間はほぼ横ばいで急落兆候なし。SMA20下・傾き負だがsmaBelowPause=falseのため拒否根拠にはならない。
 - team=M type=params decision=rejected rationale=aiStopMinConfidence 0.60→0.65、根拠エピソード(46/60/67/70)の実データ添付なく検証不能。18:30のユーザー決定は「まずA(再開判断の見直し)のみ実施、B/C(AI停止側の緩和)はAの効果を見てから」であり本提案はB相当のため今回は見送り cursor=根拠薄く承認・却下の確信持てない(neutral)
