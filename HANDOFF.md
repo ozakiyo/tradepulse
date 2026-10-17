@@ -236,6 +236,11 @@ Kの当月累計はMETA値とDB直接集計値で+20円程度の差異が続い�
 
 ## セッションログ（新しい行を上に追記）
 
+### 2026-10-17 22:16 JST — Claude Code（定期AI協議）
+- team=M type=resume decision=approved rationale=同一pausedAt(10/15 17:09:43)への7回目の提案。18:30のユーザー決定(過去6回の再停止はすべてai_emergencyで決まった条件に達した実績なし)により再現性リスクを却下理由にせず、metricsPlain(学習窓いずれも閾値の50%未満・resume_gate+0.3%≧-3%・hardFloorHit=false)とcooldown消化済みを根拠に承認。Mは再開・新規買い稼働へ復帰（約57時間ぶり） cursor=クールダウン完了(残0h・停止53h)。学習ルール各窓は閾値未達、再開ゲートも充足。短時間はほぼ横ばいで急落兆候なし。SMA20下・傾き負だがsmaBelowPause=falseのため拒否根拠にはならない。
+- team=M type=params decision=rejected rationale=aiStopMinConfidence 0.60→0.65、根拠エピソード(46/60/67/70)の実データ添付なく検証不能。18:30のユーザー決定は「まずA(再開判断の見直し)のみ実施、B/C(AI停止側の緩和)はAの効果を見てから」であり本提案はB相当のため今回は見送り cursor=根拠薄く承認・却下の確信持てない(neutral)
+- team=M type=exit refId=bat_jpy decision=rejected rationale=含み益+59.78%の利確提案だが、reasonJaの「売り優勢転化」とenergy実測(alignment=against止まり・reverse=fading・hint=wait_scratch、ADXはplusDI>minusDIで買い優勢)が矛盾。eth_jpy・xlm_jpyで繰り返し確認した同パターンに合致し却下。hard_sl距離42.42%で保持継続可能 cursor=逆行fading・上昇トレンド継続の余地もあり確信持てない(neutral)
+
 ### 2026-10-17 18:30 JST — Claude Code（AI協議の再開判断の見直し）
 - **10/17 18:30 AI協議の再開判断を見直し（ユーザー決定 A）**: `meta-consult/prompt.md` を改訂。「承認→短時間で再停止」を**却下理由にしてよいのは、再停止が決まった条件（`learned_*`/`hard_floor`）だった場合だけ**。`ai_emergency:`（AI がしきい値の40〜60%で早めに止めたもの）の再停止は理由にしない。再開は今の数値（resume_gate・各 change_pct がしきい値の50%未満か・hardFloorHit）で判断し、**止め続ける損**も比べる。VPS `prompt.md.bak-20261017`
   - 根拠: M の10月の停止6回はすべて `ai_emergency`（決まった条件に達したのは0回）、停止後24時間の BTC 最安 −2.1%〜+0.2%。これを「すぐ再停止」として 10/16〜17 に再開を6回連続却下、約57時間新規停止（その間 BTC は停止時より +0.6%）
